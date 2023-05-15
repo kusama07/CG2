@@ -7,7 +7,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// ゲームウィンドウの作成
 	win = WindowsClass::GetInstance();
-	win->GetWindow(L"LE2B_10_クサマ_リョウト_CG2");
+	win->GetWindow();
 
 	MSG msg{};
 

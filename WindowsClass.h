@@ -17,9 +17,8 @@ public:
 
 	static LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-	HWND hwnd = nullptr;
-
 private:
+	HWND hwnd = nullptr;
 
 };
 
