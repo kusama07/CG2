@@ -2,9 +2,10 @@
 class windowsClass
 {
 public:
-
+	//ウィンドウサイズ
 	static const int kClientWidth = 1280;
 	static const int kClientHeight = 720;
+
 
 	void Initialize();
 

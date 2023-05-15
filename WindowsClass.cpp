@@ -1,10 +1,8 @@
 #include "windowsClass.h"
 #include <Windows.h>
-#include <stdint.h>
 
 void Initialize() {
 	OutputDebugStringA("Hello,DirectX!!\n");
-
 
 	//ウィンドウクラスの設定
 	WNDCLASS wc{};
