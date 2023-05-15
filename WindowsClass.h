@@ -1,15 +1,23 @@
 #pragma once
-class windowsClass
+#include <cstdint>
+#include <Windows.h>
+
+class WindowsClass
 {
 public:
 	//ウィンドウサイズ
 	static const int kClientWidth = 1280;
 	static const int kClientHeight = 720;
 
+	void GetWindow(
+		const wchar_t* title = L"CG2", UINT windowStyle = WS_OVERLAPPEDWINDOW,
+		int32_t clientWidth = kClientWidth, int32_t clientHeight = kClientHeight);
 
-	void Initialize();
+	static WindowsClass* GetInstance();
 
-	void WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	static LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
+	HWND hwnd = nullptr;
 
 private:
 

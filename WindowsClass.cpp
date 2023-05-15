@@ -1,26 +1,47 @@
 #include "windowsClass.h"
-#include <Windows.h>
 
-void Initialize() {
+WindowsClass* WindowsClass::GetInstance() {
+	static WindowsClass instance;
+	return &instance;
+}
+
+LRESULT WindowsClass::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
+{
+	//メッセージに応じてゲームの固有の処理を行う
+	switch (msg) {
+		//ウィンドウが破棄された
+	case WM_DESTROY:
+		//OSに対して、アプリの終了を伝える
+		PostQuitMessage(0);
+		return 0;
+	}
+	//標準のメッセージ処理を行う
+	return DefWindowProc(hwnd, msg, wparam, lparam);
+
+}
+
+void WindowsClass::GetWindow(const wchar_t* title , UINT windowStyle,
+	int32_t clientWidth , int32_t clientHeight) {
 	OutputDebugStringA("Hello,DirectX!!\n");
 
 	//ウィンドウクラスの設定
 	WNDCLASS wc{};
 	wc.lpfnWndProc = WindowProc; //ウィンドウプロシージャを設定
-	wc.lpszClassName = L"DirectXGame";         //ウィンドウクラス名
+	wc.lpszClassName = L"CG2";         //ウィンドウクラス名
 	wc.hInstance = GetModuleHandle(nullptr);   //ウィンドウハンドル
 	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);  //カーソル指定
 
 	//ウィンドウクラスをOSに登録する
 	RegisterClass(&wc);
 	//ウィンドウサイズ｛ X座標 Y座標 横幅 縦幅 ｝
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
+	RECT wrc = { 0,0,clientWidth,clientHeight };
 	//自動でサイズを補正する
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
 	//ウィンドウオブジェクトの生成
-	HWND hwnd = CreateWindow(wc.lpszClassName,//クラス名
-		L"DirectXGame",       //タイトルバーの文字
+	HWND hwnd = CreateWindow(
+		wc.lpszClassName,//クラス名
+		L"CG2",       //タイトルバーの文字
 		WS_OVERLAPPEDWINDOW,  //標準的なウィンドウスタイル
 		CW_USEDEFAULT,        //表示X座標 (OSに任せる)
 		CW_USEDEFAULT,        //表示Y座標 (OSに任せる)
@@ -43,20 +64,5 @@ void Initialize() {
 #endif // _DEBUG
 
 	ShowWindow(hwnd, SW_SHOW);
-}
-
-LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	//メッセージに応じてゲームの固有の処理を行う
-	switch (msg) {
-		//ウィンドウが破棄された
-	case WM_DESTROY:
-		//OSに対して、アプリの終了を伝える
-		PostQuitMessage(0);
-		return 0;
-	}
-	//標準のメッセージ処理を行う
-	return DefWindowProc(hwnd, msg, wparam, lparam);
-
 }
 
