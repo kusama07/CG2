@@ -11,8 +11,11 @@
 
 class DirectX {
 public:
-	static DirectX* GetInstance();
 
+	void Initialize(
+		WindowsClass* win);
+
+	static DirectX* GetInstance();
 
 private:
 	//DXGIファクトリーの生成

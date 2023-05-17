@@ -1,13 +1,19 @@
 #include <Windows.h>
 #include "WindowsClass.h"
+#include "DirectX.h"
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	WindowsClass* win = nullptr;
+	DirectX* dx = nullptr;
 
 	// ゲームウィンドウの作成
 	win = WindowsClass::GetInstance();
 	win->GetWindow();
+
+	// DirectX初期化処理
+	dx = DirectX::GetInstance();
+	dx->Initialize(win);
 
 	MSG msg{};
 
