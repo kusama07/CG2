@@ -1,5 +1,11 @@
 #include "DirectX.h"
 
+
+void Log(const std::string& message)
+{
+	OutputDebugStringA(message.c_str());
+}
+
 DirectX* DirectX::GetInstance() {
 	static DirectX instance;
 	return &instance;
