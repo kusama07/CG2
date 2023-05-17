@@ -18,6 +18,9 @@ public:
 	static DirectX* GetInstance();
 
 private:
+
+	WindowsClass* win_;
+
 	//DXGIファクトリーの生成
 	IDXGIFactory7* dxgiFactory = nullptr;
 
@@ -26,7 +29,25 @@ private:
 
 	ID3D12Device* device = nullptr;
 
+	// コマンドキューを生成する
+	ID3D12CommandQueue* commandQueue = nullptr;
+
+	// コマンドアプリケータを生成する
+	ID3D12CommandAllocator* commandAllocator = nullptr;
+
+	// コマンドリストの生成
+	ID3D12GraphicsCommandList* commandList = nullptr;
+
+	IDXGISwapChain4* swapChain = nullptr;
+
+	ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
+
 	void InitializeDXGIDevice();
 
+	void CreateSwapChain();
+
+	void InitializeCommand();
+
+	void CreateFinalRenderTargets();
 
 };
