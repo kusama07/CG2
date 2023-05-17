@@ -30,6 +30,9 @@
     <ClCompile Include="WindowsClass.cpp">
       <Filter>ソース ファイル\base</Filter>
     </ClCompile>
+    <ClCompile Include="DirectX.cpp">
+      <Filter>ソース ファイル\base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl" />
@@ -41,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="Vector4.h">
       <Filter>ヘッダー ファイル\math</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX.h">
+      <Filter>ヘッダー ファイル\base</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
