@@ -84,7 +84,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DirectX.cpp" />
+    <ClCompile Include="DirectXClass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="WindowsClass.cpp" />
   </ItemGroup>
@@ -103,7 +103,7 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DirectX.h" />
+    <ClInclude Include="DirectXClass.h" />
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="WindowsClass.h" />
   </ItemGroup>

@@ -9,17 +9,20 @@ public:
 	static const int kClientWidth = 1280;
 	static const int kClientHeight = 720;
 
-	void GetWindow(
-		const wchar_t* title = L"CG2", UINT windowStyle = WS_OVERLAPPEDWINDOW,
-		int32_t clientWidth = kClientWidth, int32_t clientHeight = kClientHeight);
 
-	static WindowsClass* GetInstance();
+	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 
-	static LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+	HWND GetHwnd() const { return hwnd_; }
 
-	HWND hwnd = nullptr;
+	static void GetWindow(
+		const wchar_t* title = L"CG2");
 
 private:
+	// ウィンドウクラス
+	static inline WNDCLASS wc{};
+
+	//ウィンドウオブジェクト
+	static HWND hwnd_;
 
 };
 

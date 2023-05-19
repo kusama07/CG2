@@ -1,20 +1,17 @@
-#include <Windows.h>
 #include "WindowsClass.h"
-#include "DirectX.h"
+#include "DirectXClass.h"
+
+const wchar_t kWindowTitle[] = { L"CG2" };
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	WindowsClass* win = nullptr;
-	DirectX* dx = nullptr;
 
 	// ゲームウィンドウの作成
-	win = WindowsClass::GetInstance();
-	win->GetWindow();
+	WindowsClass::GetWindow(kWindowTitle);
 
-	// DirectX初期化処理
-	dx = DirectX::GetInstance();
-	dx->Initialize(win);
-
+	DirectXClass::DirectXInitialization();
+	
 	MSG msg{};
 
 	//ウィンドウの×ボタンが押されるまでループ
