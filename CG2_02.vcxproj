@@ -84,8 +84,11 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ConvertString.cpp" />
     <ClCompile Include="DirectXClass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Sprite.cpp" />
+    <ClCompile Include="Triangle.cpp" />
     <ClCompile Include="WindowsClass.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -103,7 +106,10 @@ copy "$(WindowsSdkDir)bin\$(TargetPlatformVersion)\x64\dxil.dll" "$(TargetDir)dx
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ConvertString.h" />
     <ClInclude Include="DirectXClass.h" />
+    <ClInclude Include="Sprite.h" />
+    <ClInclude Include="Triangle.h" />
     <ClInclude Include="Vector4.h" />
     <ClInclude Include="WindowsClass.h" />
   </ItemGroup>

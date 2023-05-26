@@ -1,61 +1,91 @@
-#include "windowsClass.h"
+#include "WindowsClass.h"
 
-LRESULT CALLBACK WindowsClass::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
-{
-	//メッセージに応じてゲームの固有の処理を行う
+//ウィンドウプロシージャ
+LRESULT CALLBACK WindowsClass::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+	//メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		//ウィンドウが破棄された
 	case WM_DESTROY:
-		//OSに対して、アプリの終了を伝える
+		// OSに対して、アプリの終了を伝える
 		PostQuitMessage(0);
 		return 0;
 	}
-	//標準のメッセージ処理を行う
-	return DefWindowProc(hwnd, msg, wparam, lparam);
 
+	// 標準のメッセージ処理を行う
+	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void WindowsClass::GetWindow(const wchar_t* title) {
+void WindowsClass::CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t clientheight) {
+	//ウィンドウプロシージャ
+	wc_.lpfnWndProc = WindowProc;
+	//クラス名
+	wc_.lpszClassName = L"CG2WindowClass";
+	//インスタンスハンドル
+	wc_.hInstance = GetModuleHandle(nullptr);
+	//カーソル
+	wc_.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
-	//ウィンドウクラスの設定
+	//ウィンドウクラス登録
+	RegisterClass(&wc_);
 
-	wc.lpfnWndProc = WindowProc; //ウィンドウプロシージャを設定
-	wc.lpszClassName = L"CG2WindowClass";         //ウィンドウクラス名
-	wc.hInstance = GetModuleHandle(nullptr);   //ウィンドウハンドル
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);  //カーソル指定
-
-	//ウィンドウクラスをOSに登録する
-	RegisterClass(&wc);
-	//ウィンドウサイズ｛ X座標 Y座標 横幅 縦幅 ｝
+	//ウィンドウサイズの構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,kClientWidth,kClientHeight };
-	//自動でサイズを補正する
+
+	//クライアント領域を元に実際のサイズにwrcを変更してもらう
 	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
 
-	//ウィンドウオブジェクトの生成
+	//ウィンドウの生成
 	hwnd_ = CreateWindow(
-		wc.lpszClassName,//クラス名
-		L"CG2",       //タイトルバーの文字
-		WS_OVERLAPPEDWINDOW,  //標準的なウィンドウスタイル
-		CW_USEDEFAULT,        //表示X座標 (OSに任せる)
-		CW_USEDEFAULT,        //表示Y座標 (OSに任せる)
-		wrc.right - wrc.left, //ウィンドウ横幅
-		wrc.bottom - wrc.top, //ウィンドウ縦幅
-		nullptr,              //親ウィンドウハンドル
-		nullptr,              //メニューハンドル
-		wc.hInstance,         //呼び出しアプリケーションハンドル
-		nullptr);	          //オプション
+		wc_.lpszClassName,//クラス名
+		title,//タイトルバーの名前
+		WS_OVERLAPPEDWINDOW,//ウィンドウスタイル
+		CW_USEDEFAULT,//表示X座標
+		CW_USEDEFAULT,//表示Y座標
+		wrc.right - wrc.left,//ウィンドウ横幅
+		wrc.bottom - wrc.top,//ウィンドウ縦幅
+		nullptr,//親ウィンドウハンドル
+		nullptr,//メニューハンドル
+		wc_.hInstance,//インスタンスハンドル
+		nullptr//オプション
+	);
 
-#ifdef _DEBUG
-	ID3D12Debug1* debugController = nullptr;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-	{
-		// デバッグレイヤーを有効化する
-		debugController->EnableDebugLayer();
-		// さらにGPU側でもチェックを行うようにする
-		debugController->SetEnableGPUBasedValidation(TRUE);
+#ifdef _DEBUG//デバッグレイヤー
+	debugController_ = nullptr;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_)))) {
+		//デバッグレイヤーを有効化
+		debugController_->EnableDebugLayer();
+		//GPU側でもチェックを行う
+		debugController_->SetEnableGPUBasedValidation(TRUE);
 	}
 #endif // _DEBUG
 
+	//ウィンドウ表示
 	ShowWindow(hwnd_, SW_SHOW);
 }
+
+bool WindowsClass::Procesmessage() {
+	MSG msg{};
+
+	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	{
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+
+	if (msg.message == WM_QUIT) // 終了メッセージが来たらループを抜ける
+	{
+		return true;
+	}
+
+	return false;
+}
+
+void WindowsClass::Finalize()
+{
+	debugController_->Release();
+}
+
+
 HWND WindowsClass::hwnd_;
+UINT WindowsClass::windowStyle_;
+ID3D12Debug1* WindowsClass::debugController_;
