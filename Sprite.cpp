@@ -201,8 +201,8 @@ void Sprite::VertexResource()
 void Sprite::ViewPort()
 {
 	//クライアント領域のサイズと一緒にして画面全体に表示
-	viewport_.Width = WindowsClass::kClientWidth;
-	viewport_.Height = WindowsClass::kClientHeight;
+	viewport_.Width = WinApp::kClientWidth;
+	viewport_.Height = WinApp::kClientHeight;
 	viewport_.TopLeftX = 0;
 	viewport_.TopLeftY = 0;
 	viewport_.MinDepth = 0.0f;
@@ -213,9 +213,9 @@ void Sprite::ScissorRect()
 {
 	//シザー短形
 	scissorRect_.left = 0;
-	scissorRect_.right = WindowsClass::kClientWidth;
+	scissorRect_.right = WinApp::kClientWidth;
 	scissorRect_.top = 0;
-	scissorRect_.bottom = WindowsClass::kClientHeight;
+	scissorRect_.bottom = WinApp::kClientHeight;
 }
 
 void Sprite::Initialize()
@@ -227,7 +227,7 @@ void Sprite::Initialize()
 	}
 }
 
-void Sprite::Initialization(WindowsClass* win, const wchar_t* title, int32_t width, int32_t height)
+void Sprite::Initialization(WinApp* win, const wchar_t* title, int32_t width, int32_t height)
 {
 	dxClass_->Initialization(win, title, win->kClientWidth, win->kClientHeight);
 
@@ -303,5 +303,5 @@ void Sprite::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c)
 	}
 }
 
-WindowsClass* Sprite::win_;
-DirectXClass* Sprite::dxClass_;
+WinApp* Sprite::win_;
+DirectXCommon* Sprite::dxClass_;

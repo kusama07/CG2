@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DirectXClass.h"
+#include "DirectXCommon.h"
 #include "Vector4.h"
 
 class Sprite;
@@ -8,7 +8,7 @@ class Sprite;
 class Triangle
 {
 public:
-	void Initialize(DirectXClass* dxClass);
+	void Initialize(DirectXCommon* dxClass);
 
 	void Draw(const Vector4& a, const Vector4& b, const Vector4& c);
 
@@ -20,7 +20,7 @@ private:
 private:
 	Sprite* Sprite_;
 
-	DirectXClass* dxClass_;
+	DirectXCommon* dxClass_;
 
 	Vector4* vertexData_;
 

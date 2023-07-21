@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "Sprite.h"
 
-void Triangle::Initialize(DirectXClass* dxClass)
+void Triangle::Initialize(DirectXCommon* dxClass)
 {
 	dxClass_ = dxClass;
 	SettingVertex();

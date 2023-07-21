@@ -1,7 +1,7 @@
-#include "WindowsClass.h"
+#include "WinApp.h"
 
 //ウィンドウプロシージャ
-LRESULT CALLBACK WindowsClass::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
+LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	//メッセージに応じてゲーム固有の処理を行う
 	switch (msg) {
 		//ウィンドウが破棄された
@@ -15,7 +15,7 @@ LRESULT CALLBACK WindowsClass::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LP
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void WindowsClass::CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t clientheight) {
+void WinApp::CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t clientheight) {
 	//ウィンドウプロシージャ
 	wc_.lpfnWndProc = WindowProc;
 	//クラス名
@@ -63,7 +63,7 @@ void WindowsClass::CreateWindowView(const wchar_t* title, int32_t clientWidth, i
 	ShowWindow(hwnd_, SW_SHOW);
 }
 
-bool WindowsClass::Procesmessage() {
+bool WinApp::Procesmessage() {
 	MSG msg{};
 
 	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -80,12 +80,12 @@ bool WindowsClass::Procesmessage() {
 	return false;
 }
 
-void WindowsClass::Finalize()
+void WinApp::Finalize()
 {
 	debugController_->Release();
 }
 
 
-HWND WindowsClass::hwnd_;
-UINT WindowsClass::windowStyle_;
-ID3D12Debug1* WindowsClass::debugController_;
+HWND WinApp::hwnd_;
+UINT WinApp::windowStyle_;
+ID3D12Debug1* WinApp::debugController_;

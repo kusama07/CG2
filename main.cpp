@@ -1,36 +1,38 @@
 #include "Sprite.h"
 #include "Triangle.h"
+#include "Mesh.h"
 
 const wchar_t kWindowTitle[] = { L"CG2" };
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	WindowsClass* win_ = nullptr;
+	WinApp* win_ = nullptr;
 	Sprite* sprite = new Sprite;
+	Mesh* mesh = new Mesh;
+
 	sprite->Initialization(win_, kWindowTitle, 1280, 720);
 
 	sprite->Initialize();
+	mesh->Initialize();
 
-	Vector4 data1 = { 0.4f,0.4f,0.0f,1.0f };
-	Vector4 data2 = { 0.6f,0.8f,0.0f,1.0f };
-	Vector4 data3 = { 0.8f,0.4f,0.0f,1.0f };
+	Vector4 data[15];
 
-	Vector4 data4 = { -0.8f,-0.8f,0.0f,1.0f };
-	Vector4 data5 = { -0.6f,-0.4f,0.0f,1.0f };
-	Vector4 data6 = { -0.4f,-0.8f,0.0f,1.0f };
-
-	Vector4 data7 = { 0.4f,-0.8f,0.0f,1.0f };
-	Vector4 data8 = { 0.6f,-0.4f,0.0f,1.0f };
-	Vector4 data9 = { 0.8f,-0.8f,0.0f,1.0f };
-
-	Vector4 data10 = { -0.8f,0.4f,0.0f,1.0f };
-	Vector4 data11 = { -0.6f,0.8f,0.0f,1.0f };
-	Vector4 data12 = { -0.4f,0.4f,0.0f,1.0f };
-
-	Vector4 data13 = { -0.2f,-0.2f,0.0f,1.0f };
-	Vector4 data14 = { 0.0f,0.2f,0.0f,1.0f };
-	Vector4 data15 = { 0.2f,-0.2f,0.0f,1.0f };
+	data[0] = { 0.4f,0.4f,0.0f,1.0f };
+	data[1] = { 0.6f,0.8f,0.0f,1.0f };
+	data[2] = { 0.8f,0.4f,0.0f,1.0f };
+	data[3] = { -0.8f,-0.8f,0.0f,1.0f };
+	data[4] = { -0.6f,-0.4f,0.0f,1.0f };
+	data[5] = { -0.4f,-0.8f,0.0f,1.0f };
+	data[6] = { 0.4f,-0.8f,0.0f,1.0f };
+	data[7] = { 0.6f,-0.4f,0.0f,1.0f };
+	data[8] = { 0.8f,-0.8f,0.0f,1.0f };
+	data[9] = { -0.8f,0.4f,0.0f,1.0f };
+	data[10] = { -0.6f,0.8f,0.0f,1.0f };
+	data[11] = { -0.4f,0.4f,0.0f,1.0f };
+	data[12] = { -0.2f,-0.2f,0.0f,1.0f };
+	data[13] = { 0.0f,0.2f,0.0f,1.0f };
+	data[14] = { 0.2f,-0.2f,0.0f,1.0f };
 
 	MSG msg{};
 
@@ -46,17 +48,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			sprite->Update();
 			sprite->BeginFrame();
 
+			for (int i = 0; i < 5; i++) {
+				// 三角形の描画
+				mesh->Draw(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
 
-			//三角形描画
-			sprite->DrawTriangle(data1, data2, data3);
-
-			sprite->DrawTriangle(data4, data5, data6);
-
-			sprite->DrawTriangle(data7, data8, data9);
-
-			sprite->DrawTriangle(data10, data11, data12);
-
-			sprite->DrawTriangle(data13, data14, data15);
+			}
 
 			sprite->EndFrame();
 		}

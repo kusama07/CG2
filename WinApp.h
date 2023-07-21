@@ -4,7 +4,7 @@
 #include <d3d12.h>
 #pragma comment(lib,"d3d12.lib")
 
-class WindowsClass
+class WinApp
 {
 public:
 	//クライアント領域サイズ

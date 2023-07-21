@@ -1,5 +1,5 @@
 #pragma once
-#include "DirectXClass.h"
+#include "DirectXCommon.h"
 #include <dxcapi.h>
 #include"Vector4.h"
 #include "Triangle.h"
@@ -10,7 +10,7 @@ class Sprite
 public:
 	void Initialize();
 
-	void Initialization(WindowsClass* win, const wchar_t* title, int32_t width, int32_t height);
+	void Initialization(WinApp* win, const wchar_t* title, int32_t width, int32_t height);
 
 	void BeginFrame();
 
@@ -23,8 +23,8 @@ public:
 	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c);
 
 private:
-	static WindowsClass* win_;
-	static	DirectXClass* dxClass_;
+	static WinApp* win_;
+	static	DirectXCommon* dxClass_;
 
 	Triangle* triangle_[10];
 
