@@ -6,6 +6,23 @@ void Triangle::Initialize(DirectXCommon* dxClass)
 {
 	dxClass_ = dxClass;
 	SettingVertex();
+
+	TriangleData[0] = { 0.4f,0.4f,0.0f,1.0f };
+	TriangleData[1] = { 0.6f,0.8f,0.0f,1.0f };
+	TriangleData[2] = { 0.8f,0.4f,0.0f,1.0f };
+	TriangleData[3] = { -0.8f,-0.8f,0.0f,1.0f };
+	TriangleData[4] = { -0.6f,-0.4f,0.0f,1.0f };
+	TriangleData[5] = { -0.4f,-0.8f,0.0f,1.0f };
+	TriangleData[6] = { 0.4f,-0.8f,0.0f,1.0f };
+	TriangleData[7] = { 0.6f,-0.4f,0.0f,1.0f };
+	TriangleData[8] = { 0.8f,-0.8f,0.0f,1.0f };
+	TriangleData[9] = { -0.8f,0.4f,0.0f,1.0f };
+	TriangleData[10] = { -0.6f,0.8f,0.0f,1.0f };
+	TriangleData[11] = { -0.4f,0.4f,0.0f,1.0f };
+	TriangleData[12] = { -0.2f,-0.2f,0.0f,1.0f };
+	TriangleData[13] = { 0.0f,0.2f,0.0f,1.0f };
+	TriangleData[14] = { 0.2f,-0.2f,0.0f,1.0f };
+
 }
 
 void Triangle::Draw(const Vector4& a, const Vector4& b, const Vector4& c)
@@ -25,6 +42,7 @@ void Triangle::Draw(const Vector4& a, const Vector4& b, const Vector4& c)
 
 	//描画
 	dxClass_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
+
 }
 
 void Triangle::Finalize()

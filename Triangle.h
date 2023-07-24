@@ -18,6 +18,9 @@ private:
 	void SettingVertex();
 
 private:
+
+	Vector4 TriangleData[15];
+
 	Sprite* Sprite_;
 
 	DirectXCommon* dxClass_;

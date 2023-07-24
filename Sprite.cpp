@@ -220,11 +220,6 @@ void Sprite::ScissorRect()
 
 void Sprite::Initialize()
 {
-	for (int i = 0; i < 10; i++)
-	{
-		triangle_[i] = new Triangle();
-		triangle_[i]->Initialize(dxClass_);
-	}
 }
 
 void Sprite::Initialization(WinApp* win, const wchar_t* title, int32_t width, int32_t height)
@@ -269,10 +264,6 @@ void Sprite::EndFrame()
 
 void Sprite::Finalize()
 {
-	for (int i = 0; i < 10; i++)
-	{
-		triangle_[i]->Finalize();
-	}
 
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
@@ -294,6 +285,32 @@ void Sprite::Update()
 
 void Sprite::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c)
 {
+	
+}
+
+WinApp* Sprite::win_;
+DirectXCommon* Sprite::dxClass_;
+
+
+Mesh::Mesh()
+{
+	triangleCount_ = 0;
+	for (int i = 0; i < 10; i++)
+	{
+		triangle_[i] = new Triangle();
+	}
+}
+
+void Mesh::Initialize(DirectXCommon* dxClass)
+{
+
+}
+
+void Mesh::Update() {
+
+}
+
+void Mesh::Draw(const Vector4& a, const Vector4& b, const Vector4& c) {
 	triangleCount_++;
 	triangle_[triangleCount_]->Draw(a, b, c);
 
@@ -302,6 +319,3 @@ void Sprite::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c)
 		triangleCount_ = 0;
 	}
 }
-
-WinApp* Sprite::win_;
-DirectXCommon* Sprite::dxClass_;

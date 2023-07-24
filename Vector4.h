@@ -5,4 +5,4 @@ typedef struct Vector4 {
 	float y;
 	float w;
 	float h;
-};
+} Vector4;

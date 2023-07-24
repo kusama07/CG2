@@ -5,6 +5,8 @@
 #include "Triangle.h"
 #pragma comment(lib,"dxcompiler.lib")
 
+class Triangle;
+
 class Sprite
 {
 public:
@@ -25,10 +27,6 @@ public:
 private:
 	static WinApp* win_;
 	static	DirectXCommon* dxClass_;
-
-	Triangle* triangle_[10];
-
-	int triangleCount_;
 
 	IDxcUtils* dxcUtils_;
 	IDxcCompiler3* dxcCompiler_;
@@ -85,5 +83,20 @@ private:
 	void VertexResource();
 	void ViewPort();
 	void ScissorRect();
+
+};
+
+class Mesh {
+
+public:
+	Mesh();
+	void Initialize(DirectXCommon* dxClass);
+	void Update();
+	void Draw(const Vector4& a, const Vector4& b, const Vector4& c);
+
+private:
+
+	Triangle* triangle_[10];
+	int triangleCount_;
 
 };
