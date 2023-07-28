@@ -1,5 +1,5 @@
 #include<Windows.h>
-#include "Sprite.h"
+#include "MyEngine.h"
 #include "Triangle.h"
 #include "WinApp.h"
 #include "DirectXCommon.h"
@@ -9,12 +9,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	WinApp* winApp = new WinApp;
 	DirectXCommon* dxCommon = new DirectXCommon;
-	Sprite* sprite = new Sprite;
+	MyEngine* myEngine = new MyEngine;
 
 	// ゲームシーンの初期化
 	winApp->StartApp();
 	dxCommon->Initialize(winApp->GetHwnd());
-	sprite->Initialize();
+	myEngine->Initialize();
 
 	Vector4 triangleData[10][3];
 	Triangle* triangle[4];
@@ -39,12 +39,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		else {
 			//ゲームの処理
-			sprite->Update();
+			myEngine->Update();
 
 			for (int i = 0; i < 4; i++) {
 				triangle[i]->Draw();
 			}
-			sprite->UpdateEnd();
+			myEngine->UpdateEnd();
 		}
 	}
 
@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		triangle[i]->Finalize();
 	}
 	winApp->EndApp();
-	sprite->FInalize();
+	myEngine->Finalize();
 	dxCommon->PostDraw();
 
 	return 0;
