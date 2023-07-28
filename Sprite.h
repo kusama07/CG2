@@ -73,6 +73,8 @@ private:
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_{};
 
+	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
 	ID3D12RootSignature* rootSignature_ = nullptr;

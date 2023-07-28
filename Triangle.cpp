@@ -1,10 +1,11 @@
 #include "Triangle.h"
 #include <cassert>
 
-void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vector4& b, const Vector4& c)
+void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& material)
 {
 	dxCommon_ = dxCommon;
 	SettingVertex();
+	Settingcolor();
 
 	//左下
 	vertexData_[0] = a;
@@ -13,6 +14,7 @@ void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vecto
 	//右下
 	vertexData_[2] = c;
 
+	*materialData_ = material;
 }
 
 void Triangle::Draw()
@@ -24,6 +26,9 @@ void Triangle::Draw()
 	//形状を設定。PS0にせっていしているものとはまた別。同じものを設定する
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	// マテリアルCBufferの場所を設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 
@@ -31,38 +36,13 @@ void Triangle::Draw()
 
 void Triangle::Finalize()
 {
+	materialResource_->Release();
 	vertexResource_->Release();
 }
 
 void Triangle::SettingVertex()
 {
-	//頂点リソース用のヒープの設定
-	D3D12_HEAP_PROPERTIES uplodeHeapProperties{};
-	uplodeHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;//UploadHeapを使う
-
-	//頂点リソースの設定
-	D3D12_RESOURCE_DESC vertexResourceDesc{};
-
-	//バッファリソース。テクスチャの場合はまた別の設定をする
-	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	vertexResourceDesc.Width = sizeof(Vector4) * 3;//リソースサイズ　
-
-	//バッファの場合はこれらは１にする決まり
-	vertexResourceDesc.Height = 1;
-	vertexResourceDesc.DepthOrArraySize = 1;
-	vertexResourceDesc.MipLevels = 1;
-	vertexResourceDesc.SampleDesc.Count = 1;
-
-	//バッファの場合はこれにする決まり
-	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	HRESULT hr;
-
-	//実際に頂点リソースを作る
-	hr = dxCommon_->GetDevice()->CreateCommittedResource(&uplodeHeapProperties, D3D12_HEAP_FLAG_NONE,
-		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-		IID_PPV_ARGS(&vertexResource_));
-
-	assert(SUCCEEDED(hr));
+	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Vector4) * 3);
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
@@ -76,4 +56,42 @@ void Triangle::SettingVertex()
 	//書き込むためのアドレスを取得
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
 
+}
+
+void Triangle::Settingcolor() {
+	//マテリアル用のリソースを作る　今回はcolor1つ分	
+	materialResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Vector4));
+	//書き込むためのアドレスを取得	
+	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+}
+
+
+ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
+{
+	//頂点リソース用のヒープの設定
+	uplodeHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;//UploadHeapを使う
+
+	//頂点リソースの設定
+
+	//バッファリソース。テクスチャの場合はまた別の設定をする
+	vertexResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	vertexResourceDesc.Width = sizeInBytes;//リソースサイズ　
+
+	//バッファの場合はこれらは１にする決まり
+	vertexResourceDesc.Height = 1;
+	vertexResourceDesc.DepthOrArraySize = 1;
+	vertexResourceDesc.MipLevels = 1;
+	vertexResourceDesc.SampleDesc.Count = 1;
+
+	//バッファの場合はこれにする決まり
+	vertexResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	//実際に頂点リソースを作る
+	hr_ = dxCommon_->GetDevice()->CreateCommittedResource(&uplodeHeapProperties, D3D12_HEAP_FLAG_NONE,
+		&vertexResourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
+		IID_PPV_ARGS(&Resource_));
+
+	assert(SUCCEEDED(hr_));
+
+	return Resource_;
 }

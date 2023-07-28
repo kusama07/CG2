@@ -18,14 +18,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	Vector4 triangleData[10][3];
 	Triangle* triangle[4];
+	Vector4 Material[4];
 
 	for (int i = 0; i < 4; i++)
 	{
 		triangleData[i][0] = { -0.2f + (i * 0.4f),-0.8f,0.0f,1.5f };
 		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.4f,0.0f,1.5f };
 		triangleData[i][2] = { 0.2f + (i * 0.4f),-0.8f,0.0f,1.5f };
+		Material[i] = { 1.0f,0.1f * i,0.2f * i,1.0f };
 		triangle[i] = new Triangle;
-		triangle[i]->Initialize(dxCommon, triangleData[i][0], triangleData[i][1], triangleData[i][2]);
+		triangle[i]->Initialize(dxCommon, triangleData[i][0], triangleData[i][1], triangleData[i][2],Material[i]);
 	}
 
 	MSG msg{};
