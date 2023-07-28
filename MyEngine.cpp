@@ -1,13 +1,13 @@
-#include "Sprite.h"
+#include "MyEngine.h"
 
-Sprite::Sprite()
+MyEngine::MyEngine()
 {
 	fenceValue_ = dxCommon_->GetFenceValue();
 }
 
-Sprite::~Sprite() {}
+MyEngine::~MyEngine() {}
 
-void Sprite::Initialize()
+void MyEngine::Initialize()
 {
 	DXCInitialize();
 	CreateRootSignature();
@@ -20,23 +20,23 @@ void Sprite::Initialize()
 
 }
 
-void Sprite::Update()
+void MyEngine::Update()
 {
 	Render();
 }
 
-void Sprite::UpdateEnd()
+void MyEngine::UpdateEnd()
 {
 	StateChange();
 }
 
-void Sprite::FInalize()
+void MyEngine::Finalize()
 {
 	Relese();
 }
 
 
-IDxcBlob* Sprite::CompileShader(const std::wstring& filePath, const wchar_t* profile, IDxcUtils* dxcUtils, IDxcCompiler3* dxcCompiler, IDxcIncludeHandler* includeHandler)
+IDxcBlob* MyEngine::CompileShader(const std::wstring& filePath, const wchar_t* profile, IDxcUtils* dxcUtils, IDxcCompiler3* dxcCompiler, IDxcIncludeHandler* includeHandler)
 {
 	//これからシェーダーをコンパイルする旨をログに出す
 	Log(ConvertString(std::format(L"Begin CompileShader, path:{},profile:{}\n", filePath, profile)));
@@ -97,7 +97,7 @@ IDxcBlob* Sprite::CompileShader(const std::wstring& filePath, const wchar_t* pro
 	return shaderBlob;
 }
 
-void Sprite::DXCInitialize()
+void MyEngine::DXCInitialize()
 {
 	hr_ = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&dxcUtils_));
 	assert(SUCCEEDED(hr_));
@@ -108,7 +108,7 @@ void Sprite::DXCInitialize()
 	assert(SUCCEEDED(hr_));
 }
 
-void Sprite::CreateRootSignature()
+void MyEngine::CreateRootSignature()
 {
 	descriptionRootSignature_.Flags =
 		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
@@ -134,7 +134,7 @@ void Sprite::CreateRootSignature()
 	assert(SUCCEEDED(hr_));
 }
 
-void Sprite::SettingInputLayout()
+void MyEngine::SettingInputLayout()
 {
 	inputElementDescs_[0].SemanticName = "POSITION";
 	inputElementDescs_[0].SemanticIndex = 0;
@@ -145,14 +145,14 @@ void Sprite::SettingInputLayout()
 	inputLayoutDesc_.NumElements = _countof(inputElementDescs_);
 }
 
-void Sprite::SettingBlendState()
+void MyEngine::SettingBlendState()
 {
 	//すべての色要素を書き込む
 	blendDesc_.RenderTarget[0].RenderTargetWriteMask =
 		D3D12_COLOR_WRITE_ENABLE_ALL;
 }
 
-void Sprite::SettingRasterizerState()
+void MyEngine::SettingRasterizerState()
 {
 	//裏面（時計回り）を表示しない
 	rasterizerDesc_.CullMode = D3D12_CULL_MODE_BACK;
@@ -161,7 +161,7 @@ void Sprite::SettingRasterizerState()
 
 }
 
-void Sprite::ShaderCompile() {
+void MyEngine::ShaderCompile() {
 	//Shaderをコンパイルする
 	vertexShaderBlob_ = CompileShader(L"Object3d.VS.hlsl",
 		L"vs_6_0", dxcUtils_, dxcCompiler_, includeHandler_);
@@ -173,7 +173,7 @@ void Sprite::ShaderCompile() {
 	assert(pixelShaderBlob_ != nullptr);
 }
 
-void Sprite::CreatePSO()
+void MyEngine::CreatePSO()
 {
 	graphicsPipelineStateDesc_.pRootSignature = rootSignature_;//RootSignature
 	graphicsPipelineStateDesc_.InputLayout = inputLayoutDesc_;//Inputlayout
@@ -199,7 +199,7 @@ void Sprite::CreatePSO()
 	assert(SUCCEEDED(hr_));
 }
 
-void Sprite::VertexResource()
+void MyEngine::VertexResource()
 {
 	//頂点リソース用のヒープの設定
 	D3D12_HEAP_PROPERTIES uplodeHeapProperties{};
@@ -231,7 +231,7 @@ void Sprite::VertexResource()
 
 }
 
-void Sprite::Render()
+void MyEngine::Render()
 {
 	//クライアント領域のサイズと一緒にして画面全体に表示
 	viewport_.Width = static_cast<float>(winApp_.GetWidth());
@@ -278,7 +278,7 @@ void Sprite::Render()
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);	//VBVを設定
 }
 
-void Sprite::StateChange()
+void MyEngine::StateChange()
 {
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -317,7 +317,7 @@ void Sprite::StateChange()
 
 }
 
-void Sprite::Relese()
+void MyEngine::Relese()
 {
 
 	vertexResource_->Release();

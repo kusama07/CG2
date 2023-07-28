@@ -9,13 +9,13 @@
 
 #pragma comment(lib,"dxcompiler.lib")
 
-class Sprite
+class MyEngine
 {
 public:
 
-	Sprite();
+	MyEngine();
 
-	~Sprite();
+	~MyEngine();
 
 	void Initialize();
 
@@ -23,7 +23,7 @@ public:
 
 	void UpdateEnd();
 
-	void FInalize();
+	void Finalize();
 
 private:
 
