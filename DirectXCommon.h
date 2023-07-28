@@ -66,8 +66,6 @@ private:
 
 	void Relese();
 
-	void CommandKick();
-
 private:
 	WinApp winApp_; 
 

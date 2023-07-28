@@ -33,7 +33,7 @@ void DirectXCommon::Initialize(HWND hwnd) {
 }
 
 void DirectXCommon::PreDraw() {
-	CommandKick();
+	
 }
 
 void DirectXCommon::PostDraw() {
@@ -197,10 +197,6 @@ void DirectXCommon::CreateFence() {
 	//Fenceのsignalを待つためのイベントを作成する
 	fenceEvent_ = CreateEvent(NULL, false, false, NULL);
 	assert(fenceEvent_ != nullptr);
-}
-
-void DirectXCommon::CommandKick(){
-
 }
 
 
