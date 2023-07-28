@@ -8,9 +8,9 @@ class Sprite;
 class Triangle
 {
 public:
-	void Initialize(DirectXCommon* dxClass);
+	void Initialize(DirectXCommon* dxCommon, const Vector4&a, const Vector4& b, const Vector4& c);
 
-	void Draw(const Vector4& a, const Vector4& b, const Vector4& c);
+	void Draw();
 
 	void Finalize();
 
@@ -19,11 +19,9 @@ private:
 
 private:
 
-	Vector4 TriangleData[15];
-
 	Sprite* Sprite_;
 
-	DirectXCommon* dxClass_;
+	DirectXCommon* dxCommon_;
 
 	Vector4* vertexData_;
 

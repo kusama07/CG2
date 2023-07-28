@@ -19,9 +19,6 @@
     <Filter Include="ヘッダー ファイル\base">
       <UniqueIdentifier>{4b3300a1-9745-46c8-bbd0-b1a41a2f8818}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ヘッダー ファイル\math">
-      <UniqueIdentifier>{ec22eb68-5048-4976-ba2c-ef0860b4ddb1}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -42,18 +39,12 @@
     <ClCompile Include="WinApp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="GameScene.cpp">
-      <Filter>ソース ファイル</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Object3d.VS.hlsl" />
     <FxCompile Include="Object3d.PS.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Vector4.h">
-      <Filter>ヘッダー ファイル\math</Filter>
-    </ClInclude>
     <ClInclude Include="Triangle.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
@@ -67,9 +58,6 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="WinApp.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="GameScene.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>

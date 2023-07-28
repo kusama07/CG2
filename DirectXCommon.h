@@ -1,30 +1,53 @@
 #pragma once
-#include <chrono>
-#include <cstdlib>
+#include <d3d12.h>
 #include <dxgi1_6.h>
-#include "WinApp.h"
+#include <cassert>
+#include <format>
+#include <dxgidebug.h>
 #include "ConvertString.h"
+#include "WinApp.h"
+
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "dxguid.lib")
+#pragma comment(lib, "Winmm.lib")
 
 class DirectXCommon
 {
 public:
-	void Initialization(WinApp* win, const wchar_t* title, int32_t backBufferWidth = WinApp::kClientWidth, int32_t backBufferHeight = WinApp::kClientHeight);
+
+	DirectXCommon();
+
+	~DirectXCommon();
+
+	void Initialize(HWND hwnd);
 
 	void PreDraw();
 
 	void PostDraw();
 
-	static inline void ClearRenderTarget();
+	ID3D12Device* GetDevice()const { return device_; }
 
-	static void Finalize();
+	ID3D12GraphicsCommandList* GetCommandList()const { return commandList_; }
 
-	HRESULT GetHr() { return hr_; }
+	IDXGISwapChain4* GetSwapChain()const { return swapChain_; };
 
-	void SetHr(HRESULT a) { this->hr_ = a; }
+	ID3D12Resource* GetSwapChainResource(int index)const { return swapChainResources_[index]; };
 
-	ID3D12Device* GetDevice() { return device_; }
+	D3D12_CPU_DESCRIPTOR_HANDLE& GetRTVHandle(int index)const{
+		assert(index >= 0 && index < 2);
+		return rtvHandles_[index];
+	}
 
-	ID3D12GraphicsCommandList* GetCommandList() { return commandList_; }
+	ID3D12CommandQueue* GetCommandQueue()const { return commandQueue_; };
+
+	ID3D12CommandAllocator* GetCommandAllocator()const { return commandAllocator_; };
+
+	ID3D12Fence* GetFence()const { return fence_; };
+
+	uint64_t GetFenceValue()const { return fenceValue_; };
+
+	HANDLE GetFenceEvent() { return fenceEvent_; };
 
 private:
 	void InitializeDXGIDevice();
@@ -37,16 +60,34 @@ private:
 
 	void CreateFence();
 
+	void PullResourceSwapChain();
+
+	void CreateRTV();
+
+	void Relese();
+
+	void CommandKick();
+
 private:
-	static WinApp* win_;
+	WinApp winApp_; 
+
+	HWND hwnd_;
 
 	//　DXGIファクトリー生成
-	static IDXGIFactory7* dxgiFactory_;
+	IDXGIFactory7* dxgiFactory = nullptr;
 	//
 
 	// 使用するアダプタ用の変数
-	static IDXGIAdapter4* useAdapter_;
+	IDXGIAdapter4* useAdapter = nullptr;
 	//
+
+	// ディスクリプタヒープの生成
+	ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
+	//
+
+	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
+	HRESULT hr_;
 
 	// D3D12Device生成
 	static ID3D12Device* device_;
@@ -68,10 +109,6 @@ private:
 	static IDXGISwapChain4* swapChain_;
 	//
 
-	// ディスクリプタヒープの生成
-	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
-	//
-
 	// SwapchainからResourceを引っ張ってくる
 	static ID3D12Resource* swapChainResources_[2];
 	static D3D12_CPU_DESCRIPTOR_HANDLE rtvHandles_[2];
@@ -79,17 +116,14 @@ private:
 
 	// 初期値0でFenceを作る
 	static ID3D12Fence* fence_;
-	static uint64_t fenceValue_;
+	uint64_t fenceValue_;
 	//
 
 	// FenceのSignalを持つためにイベントを作成する
-	static HANDLE fenceEvent_;
+	HANDLE fenceEvent_;
 
-	static int32_t backBufferWidth_;
-	static int32_t backBufferHeight_;
-
-	static inline D3D12_RESOURCE_BARRIER barrier_{};
-
-	static HRESULT hr_;
 	//
+
+
+
 };

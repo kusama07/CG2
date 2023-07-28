@@ -7,31 +7,38 @@
 class WinApp
 {
 public:
-	//クライアント領域サイズ
-	static const int32_t kClientWidth = 1280;
-	static const int32_t kClientHeight = 720;
+	WinApp();
+	~WinApp();
 
-	HINSTANCE GetHInstance()const { return wc_.hInstance; }
+	void StartApp();
+	void EndApp();
+	
+	int32_t GetWidth() const { return Width_; }
 
-	static	bool Procesmessage();
-	static void Finalize();
+	int32_t GetHeight() const { return Height_; }
 
-	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
-
-	static ID3D12Debug1* GetdebugController() { return debugController_; }
-
-	static inline HWND GetHwnd() { return hwnd_; }
-
-	static void CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t clientheight);
+	HWND GetHwnd() const { return hwnd_; }
 
 private:
-	static	UINT windowStyle_;
+	const wchar_t* Title_;
+	HINSTANCE hInst_;
+	HWND hwnd_;
+	int32_t Width_;		
+	int32_t Height_;
 
-	static ID3D12Debug1* debugController_;
+	RECT wrc_;
 
-	static	inline 	RECT wrc_ = { 0,0,kClientWidth,kClientHeight };
+	WNDCLASS wc_;
 
-	static inline	WNDCLASS wc_{};// ウィンドウクラス
+	ID3D12Debug1* debugController_ = nullptr;
 
-	static	HWND hwnd_;
+	bool Initialize();
+
+	void End();
+
+	bool WindowClassRegister();
+
+	void EndWindow();
+
+	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 };

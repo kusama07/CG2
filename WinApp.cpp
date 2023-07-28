@@ -1,5 +1,32 @@
 #include "WinApp.h"
 
+WinApp::WinApp() {
+
+	Title_ = L"CG2_LE2B_10_クサマリョウト";
+
+	hInst_ = nullptr;
+	hwnd_ = nullptr;
+
+	Width_ = 1280;
+	Height_ = 720;
+
+	wrc_ = {};
+	wc_ = {};
+
+}
+
+WinApp::~WinApp() {
+	End();
+}
+
+void WinApp::StartApp() {
+	Initialize();
+}
+
+void WinApp::EndApp() {
+	End();
+}
+
 //ウィンドウプロシージャ
 LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam) {
 	//メッセージに応じてゲーム固有の処理を行う
@@ -15,7 +42,14 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-void WinApp::CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t clientheight) {
+bool WinApp::Initialize() {
+	if (!WindowClassRegister()) {
+		return false;
+	}
+	return true;
+}
+
+bool WinApp::WindowClassRegister() {
 	//ウィンドウプロシージャ
 	wc_.lpfnWndProc = WindowProc;
 	//クラス名
@@ -29,63 +63,55 @@ void WinApp::CreateWindowView(const wchar_t* title, int32_t clientWidth, int32_t
 	RegisterClass(&wc_);
 
 	//ウィンドウサイズの構造体にクライアント領域を入れる
-	RECT wrc = { 0,0,kClientWidth,kClientHeight };
+	wrc_ = { 0,0,Width_,Height_ };
 
 	//クライアント領域を元に実際のサイズにwrcを変更してもらう
-	AdjustWindowRect(&wrc, WS_OVERLAPPEDWINDOW, false);
+	AdjustWindowRect(&wrc_, WS_OVERLAPPEDWINDOW, false);
 
 	//ウィンドウの生成
 	hwnd_ = CreateWindow(
 		wc_.lpszClassName,//クラス名
-		title,//タイトルバーの名前
+		Title_,//タイトルバーの名前
 		WS_OVERLAPPEDWINDOW,//ウィンドウスタイル
 		CW_USEDEFAULT,//表示X座標
 		CW_USEDEFAULT,//表示Y座標
-		wrc.right - wrc.left,//ウィンドウ横幅
-		wrc.bottom - wrc.top,//ウィンドウ縦幅
+		wrc_.right - wrc_.left,//ウィンドウ横幅
+		wrc_.bottom - wrc_.top,//ウィンドウ縦幅
 		nullptr,//親ウィンドウハンドル
 		nullptr,//メニューハンドル
 		wc_.hInstance,//インスタンスハンドル
 		nullptr//オプション
 	);
 
-#ifdef _DEBUG//デバッグレイヤー
-	debugController_ = nullptr;
-	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_)))) {
-		//デバッグレイヤーを有効化
+#ifdef _DEBUG
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController_))))
+	{
 		debugController_->EnableDebugLayer();
-		//GPU側でもチェックを行う
 		debugController_->SetEnableGPUBasedValidation(TRUE);
 	}
 #endif // _DEBUG
 
+	if (hwnd_ == nullptr) {
+		return false;
+	}
+
 	//ウィンドウ表示
 	ShowWindow(hwnd_, SW_SHOW);
+
+	return true;
+
 }
 
-bool WinApp::Procesmessage() {
-	MSG msg{};
+void WinApp::End() {
+	EndWindow();
+}
 
-	if (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-	{
-		TranslateMessage(&msg);
-		DispatchMessage(&msg);
+void WinApp::EndWindow() {
+
+#ifdef _DEBUG
+	if (debugController_ != nullptr) {
+		debugController_->Release();
 	}
 
-	if (msg.message == WM_QUIT) // 終了メッセージが来たらループを抜ける
-	{
-		return true;
-	}
-
-	return false;
+#endif
 }
-
-void WinApp::Finalize()
-{
-	debugController_->Release();
-}
-
-
-HWND WinApp::hwnd_;
-UINT WinApp::windowStyle_;
-ID3D12Debug1* WinApp::debugController_;

@@ -1,27 +1,34 @@
+#include<Windows.h>
 #include "Sprite.h"
 #include "Triangle.h"
-#include "GameScene.h"
-
-const wchar_t kWindowTitle[] = { L"CG2" };
+#include "WinApp.h"
+#include "DirectXCommon.h"
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	WinApp* win_ = nullptr;
+	WinApp* winApp = new WinApp;
+	DirectXCommon* dxCommon = new DirectXCommon;
 	Sprite* sprite = new Sprite;
-	Mesh* mesh = new Mesh;
-	GameScene* gameScene = nullptr;
 
 	// ゲームシーンの初期化
-	gameScene = new GameScene();
-	gameScene->Initialize();
-
-	sprite->Initialization(win_, kWindowTitle, 1280, 720);
-
+	winApp->StartApp();
+	dxCommon->Initialize(winApp->GetHwnd());
 	sprite->Initialize();
 
-	MSG msg{};
+	Vector4 triangleData[10][3];
+	Triangle* triangle[4];
 
+	for (int i = 0; i < 4; i++)
+	{
+		triangleData[i][0] = { -0.2f + (i * 0.4f),-0.8f,0.0f,1.5f };
+		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.4f,0.0f,1.5f };
+		triangleData[i][2] = { 0.2f + (i * 0.4f),-0.8f,0.0f,1.5f };
+		triangle[i] = new Triangle;
+		triangle[i]->Initialize(dxCommon, triangleData[i][0], triangleData[i][1], triangleData[i][2]);
+	}
+
+	MSG msg{};
 
 	//ウィンドウのxが押されるまでループ
 	while (msg.message != WM_QUIT) {
@@ -33,15 +40,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		else {
 			//ゲームの処理
 			sprite->Update();
-			sprite->BeginFrame();
 
-			gameScene->Draw();
-
-			sprite->EndFrame();
+			for (int i = 0; i < 4; i++) {
+				triangle[i]->Draw();
+			}
+			sprite->UpdateEnd();
 		}
 	}
 
-	sprite->Finalize();
+	for (int i = 0; i < 4; i++) {
+		triangle[i]->Finalize();
+	}
+	winApp->EndApp();
+	sprite->FInalize();
+	dxCommon->PostDraw();
 
 	return 0;
 }
