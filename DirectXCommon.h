@@ -26,6 +26,10 @@ public:
 
 	void PostDraw();
 
+	HRESULT GetHr() { return hr_; }
+
+	void SetHr(HRESULT a) { this->hr_ = a; }
+
 	ID3D12Device* GetDevice()const { return device_; }
 
 	ID3D12GraphicsCommandList* GetCommandList()const { return commandList_; }
@@ -49,14 +53,14 @@ public:
 
 	HANDLE GetFenceEvent() { return fenceEvent_; };
 
+	static void ImGuiInitialize();
+
 private:
 	void InitializeDXGIDevice();
 
 	void InitializeCommand();
 
 	void CreateSwapChain();
-
-	void CreateFinalRenderTargets();
 
 	void CreateFence();
 
@@ -69,7 +73,7 @@ private:
 	void CommandKick();
 
 private:
-	WinApp winApp_; 
+	static WinApp winApp_;
 
 	HWND hwnd_;
 
@@ -82,12 +86,16 @@ private:
 	//
 
 	// ディスクリプタヒープの生成
-	ID3D12DescriptorHeap* rtvDescriptorHeap = nullptr;
+	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
 	//
 
-	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+	static D3D12_RENDER_TARGET_VIEW_DESC rtvDesc_;
 
-	HRESULT hr_;
+
+	static ID3D12DescriptorHeap* srvDescriptorHeap_;
+
+
+	static HRESULT hr_;
 
 	// D3D12Device生成
 	static ID3D12Device* device_;
@@ -107,6 +115,7 @@ private:
 
 	// スワップチェーンを生成する
 	static IDXGISwapChain4* swapChain_;
+	static DXGI_SWAP_CHAIN_DESC1 swapChainDesc_;
 	//
 
 	// SwapchainからResourceを引っ張ってくる
@@ -124,6 +133,6 @@ private:
 
 	//
 
-
+	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
 
 };

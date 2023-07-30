@@ -27,11 +27,13 @@ void MyEngine::Update()
 
 void MyEngine::UpdateEnd()
 {
+	
 	StateChange();
 }
 
 void MyEngine::Finalize()
 {
+	ImGui::Render();
 	Relese();
 }
 
@@ -83,7 +85,7 @@ IDxcBlob* MyEngine::CompileShader(const std::wstring& filePath, const wchar_t* p
 			assert(false);
 		}
 	}
-
+	
 	//コンパイル結果から実行用のバイナリ部分を取得
 	IDxcBlob* shaderBlob = nullptr;
 	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), nullptr);
@@ -254,6 +256,10 @@ void MyEngine::Render()
 	//これから書き込むバッグバッファのインデックスを取得
 	backBufferIndex = dxCommon_->GetSwapChain()->GetCurrentBackBufferIndex();
 
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+
 	//今回のバリアはTransition
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	//Noneにしておく
@@ -278,7 +284,13 @@ void MyEngine::Render()
 	//RootSignatureを設定。PSOに設定しているけど別途設定が必要
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
 	dxCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_);	//PSOを設定
+
+	//開発用UIの処理
+	ImGui::ShowDemoWindow();
+
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);	//VBVを設定
+
+
 }
 
 void MyEngine::StateChange()

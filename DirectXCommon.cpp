@@ -21,18 +21,19 @@ void DirectXCommon::Initialize(HWND hwnd) {
 	// スワップチェーンの生成
 	CreateSwapChain();
 
-	// レンダーターゲット生成
-	CreateFinalRenderTargets();
-
 	PullResourceSwapChain();
 
 	CreateRTV();
 
 	// フェンス生成
 	CreateFence();
+
+	//ImGuiの初期化
+	ImGuiInitialize();
 }
 
 void DirectXCommon::PreDraw() {
+
 	CommandKick();
 }
 
@@ -118,6 +119,20 @@ void DirectXCommon::InitializeDXGIDevice() {
 #endif // _DEBUG
 }
 
+void DirectXCommon::ImGuiInitialize()
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGui::StyleColorsDark();
+	ImGui_ImplWin32_Init(winApp_.GetHwnd());
+	ImGui_ImplDX12_Init(device_,
+		swapChainDesc_.BufferCount,
+		rtvDesc_.Format,
+		srvDescriptorHeap_,
+		srvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart(),
+		srvDescriptorHeap_->GetGPUDescriptorHandleForHeapStart());
+}
+
 void DirectXCommon::InitializeCommand() {
 
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc{};
@@ -137,34 +152,26 @@ void DirectXCommon::InitializeCommand() {
 
 void DirectXCommon::CreateSwapChain() {
 	//スワップチェーン
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = winApp_.GetWidth();
-	swapChainDesc.Height = winApp_.GetHeight();
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.SampleDesc.Count = 1;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.BufferCount = 2;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc_.Width = static_cast<UINT>(winApp_.GetWidth());
+	swapChainDesc_.Height = static_cast<UINT>(winApp_.GetHeight());
+
+	swapChainDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc_.SampleDesc.Count = 1;
+	swapChainDesc_.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc_.BufferCount = 2;
+	swapChainDesc_.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 
 	//コマンドキュー、ウィンドウハンドル、設定を渡して生成
-	hr_ = dxgiFactory->CreateSwapChainForHwnd(commandQueue_, hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
+	hr_ = dxgiFactory->CreateSwapChainForHwnd(commandQueue_, hwnd_, &swapChainDesc_, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(&swapChain_));
 	assert(SUCCEEDED(hr_));
 
-}
-
-void DirectXCommon::CreateFinalRenderTargets() {
-
-	//ディスクリプタヒープの生成
-	D3D12_DESCRIPTOR_HEAP_DESC rtvDescriptorHeapDesc{};
-	rtvDescriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;//レンダーターゲットビュー用
-	rtvDescriptorHeapDesc.NumDescriptors = 2;//ダブルバッファ用に２つ　多くても構わない
-	hr_ = device_->CreateDescriptorHeap(&rtvDescriptorHeapDesc, IID_PPV_ARGS(&rtvDescriptorHeap));
-	//ディスクリプタヒープが生成失敗の為、起動しない
-	assert(SUCCEEDED(hr_));
+	rtvDescriptorHeap_ = CreateDescriptorHeap(device_, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 2, false);
+	srvDescriptorHeap_ = CreateDescriptorHeap(device_, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 128, true);
 
 }
 
 void DirectXCommon::PullResourceSwapChain(){
+
 	hr_ = swapChain_->GetBuffer(0, IID_PPV_ARGS(&swapChainResources_[0]));
 	//取得できなければ起動しない
 	assert(SUCCEEDED(hr_));
@@ -173,20 +180,35 @@ void DirectXCommon::PullResourceSwapChain(){
 	assert(SUCCEEDED(hr_));
 }
 
+ID3D12DescriptorHeap* DirectXCommon::CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible)
+{
+	//ディスクリプタヒープの生成
+	ID3D12DescriptorHeap* descriptorHeap = nullptr;
+	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
+	descriptorHeapDesc.Type = heapType;
+	descriptorHeapDesc.NumDescriptors = numDescriptors;
+	descriptorHeapDesc.Flags = shaderVisible ? D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE : D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	hr_ = device_->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
+	//ディスクリプタヒープが生成失敗の為、起動しない
+	assert(SUCCEEDED(hr_));
+
+	return descriptorHeap;
+}
+
 void DirectXCommon::CreateRTV() {
 	//RTVの設定
-	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;//出力結果をSRGBに変換して書き込む
-	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;//2Dテクスチャとして書き込む
+	rtvDesc_.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;//出力結果をSRGBに変換して書き込む
+	rtvDesc_.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;//2Dテクスチャとして書き込む
 	//ディスクリプタの先頭を取得する
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvStartHandle = rtvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart();
 
 	//まず一つ目を作る。一つ目は最初のところに作る。作る場所をこちらで指定してあげる必要がある
 	rtvHandles_[0] = rtvStartHandle;
-	device_->CreateRenderTargetView(swapChainResources_[0], &rtvDesc, rtvHandles_[0]);
+	device_->CreateRenderTargetView(swapChainResources_[0], &rtvDesc_, rtvHandles_[0]);
 	//2つ目のディスクリプタハンドルを得る（自力で）
 	rtvHandles_[1].ptr = rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	//2つ目を作る
-	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc, rtvHandles_[1]);
+	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc_, rtvHandles_[1]);
 }
 
 void DirectXCommon::CreateFence() {
@@ -208,7 +230,8 @@ void DirectXCommon::Relese() {
 	CloseHandle(fenceEvent_);
 	fence_->Release();
 
-	rtvDescriptorHeap->Release();
+	rtvDescriptorHeap_->Release();
+	srvDescriptorHeap_->Release();
 	swapChainResources_[0]->Release();
 	swapChainResources_[1]->Release();
 	swapChain_->Release();
@@ -228,7 +251,7 @@ void DirectXCommon::Relese() {
 		debug->Release();
 	}
 }
-
+WinApp DirectXCommon::winApp_;
 
 //D3D12Deviceの生成
 ID3D12Device* DirectXCommon::device_;
@@ -244,10 +267,18 @@ ID3D12GraphicsCommandList* DirectXCommon::commandList_;
 
 //スワップチェーン
 IDXGISwapChain4* DirectXCommon::swapChain_;
+DXGI_SWAP_CHAIN_DESC1 DirectXCommon::swapChainDesc_{};
 
+ID3D12DescriptorHeap* DirectXCommon::rtvDescriptorHeap_;
+D3D12_RENDER_TARGET_VIEW_DESC DirectXCommon::rtvDesc_{};
+
+ID3D12DescriptorHeap* DirectXCommon::srvDescriptorHeap_;
 //RTVを２つ作るのでディスクリプタを２つ用意
 D3D12_CPU_DESCRIPTOR_HANDLE DirectXCommon::rtvHandles_[2];
 ID3D12Resource* DirectXCommon::swapChainResources_[2];
 
 //Fence
 ID3D12Fence* DirectXCommon::fence_;
+
+HRESULT DirectXCommon::hr_;
+
