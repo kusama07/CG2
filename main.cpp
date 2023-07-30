@@ -20,6 +20,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	Triangle* triangle[4];
 	Vector4 Material[4];
 
+
 	for (int i = 0; i < 4; i++)
 	{
 		triangleData[i][0] = { -0.2f + (i * 0.4f),-0.8f,0.0f,1.5f };
@@ -44,6 +45,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			myEngine->Update();
 
 			for (int i = 0; i < 4; i++) {
+
+				triangle[i]->Update();
+
 				triangle[i]->Draw();
 			}
 			myEngine->UpdateEnd();

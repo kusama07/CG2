@@ -61,7 +61,7 @@ private:
 	WinApp winApp_;
 	DirectXCommon* dxCommon_ = new DirectXCommon;
 
-	Triangle* triangle_[11];
+	/*Triangle* triangle_[11];*/
 	int triangleCount_;
 
 	HRESULT hr_;
@@ -73,7 +73,7 @@ private:
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_{};
 
-	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+	D3D12_ROOT_PARAMETER rootParameters[2] = {};
 
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
@@ -111,5 +111,6 @@ private:
 	uint64_t fenceValue_;
 
 	Vector4* vertexData_;
+
 
 };

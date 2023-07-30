@@ -2,8 +2,11 @@
 
 #include "DirectXCommon.h"
 #include "Vector4.h"
+#include "MyMath.h"
+#include "Matrix4x4.h"
+#include "MyEngine.h"
 
-class Sprite;
+class MyEngine;
 
 class Triangle
 {
@@ -14,16 +17,20 @@ public:
 
 	void Finalize();
 
+	void Update();
+
 private:
 	void SettingVertex();
 
 	void Settingcolor();
 
+	void Move();
+
 private:
 
 	HRESULT hr_;
 
-	Sprite* Sprite_;
+	MyEngine* engine_;
 
 	DirectXCommon* dxCommon_;
 
@@ -44,4 +51,13 @@ private:
 	D3D12_HEAP_PROPERTIES uplodeHeapProperties{};
 
 	D3D12_RESOURCE_DESC vertexResourceDesc{};
+
+	ID3D12Resource* wvpResource_;
+
+	Matrix4x4* wvpData_;
+
+	Matrix4x4 worldMatrix_;
+
+	Transform transform_;
+
 };

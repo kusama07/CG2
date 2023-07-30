@@ -7,6 +7,8 @@ void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vecto
 	SettingVertex();
 	Settingcolor();
 
+	transform_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+
 	//左下
 	vertexData_[0] = a;
 	//上
@@ -15,6 +17,19 @@ void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vecto
 	vertexData_[2] = c;
 
 	*materialData_ = material;
+
+	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
+	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
+
+	*wvpData_ = MakeIdentity4x4();
+
+	worldMatrix_ = MakeIdentity4x4();
+
+}
+
+void Triangle::Update() {
+	Move();
+
 }
 
 void Triangle::Draw()
@@ -28,7 +43,7 @@ void Triangle::Draw()
 
 	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
-
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 
@@ -38,6 +53,7 @@ void Triangle::Finalize()
 {
 	materialResource_->Release();
 	vertexResource_->Release();
+	wvpResource_->Release();
 }
 
 void Triangle::SettingVertex()
@@ -94,4 +110,13 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 	assert(SUCCEEDED(hr_));
 
 	return Resource_;
+}
+
+void Triangle::Move() {
+
+	transform_.rotate.y += 0.03f;
+	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+
+	*wvpData_ = worldMatrix_;
+
 }
