@@ -27,9 +27,11 @@ void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vecto
 
 }
 
-void Triangle::Update() {
+void Triangle::Update(const Vector4& material) {
 	Move();
-
+	for (int i = 0; i < 4; i++) {
+		*materialData_ = material;
+	}
 }
 
 void Triangle::Draw()

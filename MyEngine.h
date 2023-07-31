@@ -112,5 +112,4 @@ private:
 
 	Vector4* vertexData_;
 
-
 };

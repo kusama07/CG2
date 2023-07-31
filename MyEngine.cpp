@@ -1,5 +1,6 @@
 #include "MyEngine.h"
 
+
 MyEngine::MyEngine()
 {
 	fenceValue_ = dxCommon_->GetFenceValue();
@@ -22,18 +23,19 @@ void MyEngine::Initialize()
 
 void MyEngine::Update()
 {
+	dxCommon_->PreDraw();
 	Render();
+	ImGui::ShowDemoWindow();
 }
 
 void MyEngine::UpdateEnd()
 {
-	
+	ImGui::Render();
 	StateChange();
 }
 
 void MyEngine::Finalize()
 {
-	ImGui::Render();
 	Relese();
 }
 
@@ -238,6 +240,7 @@ void MyEngine::VertexResource()
 
 void MyEngine::Render()
 {
+
 	//クライアント領域のサイズと一緒にして画面全体に表示
 	viewport_.Width = static_cast<float>(winApp_.GetWidth());
 	viewport_.Height = static_cast<float>(winApp_.GetHeight());
@@ -255,10 +258,6 @@ void MyEngine::Render()
 
 	//これから書き込むバッグバッファのインデックスを取得
 	backBufferIndex = dxCommon_->GetSwapChain()->GetCurrentBackBufferIndex();
-
-	ImGui_ImplDX12_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
 
 	//今回のバリアはTransition
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -278,6 +277,9 @@ void MyEngine::Render()
 	float clearcolor[] = { 0.1f,0.25f,0.5f,1.0f };//青っぽい色。RGBAの順
 	dxCommon_->GetCommandList()->ClearRenderTargetView(dxCommon_->GetRTVHandle(backBufferIndex), clearcolor, 0, nullptr);
 
+	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon_->GetsrvDescriptor()};
+	dxCommon_->GetCommandList()->SetDescriptorHeaps(1, descriptorHeaps);
+
 	//コマンドを積む
 	dxCommon_->GetCommandList()->RSSetViewports(1, &viewport_);	//Viewportを設定
 	dxCommon_->GetCommandList()->RSSetScissorRects(1, &scissorRect_);	//Scirssorを設定
@@ -285,16 +287,18 @@ void MyEngine::Render()
 	dxCommon_->GetCommandList()->SetGraphicsRootSignature(rootSignature_);
 	dxCommon_->GetCommandList()->SetPipelineState(graphicsPipelineState_);	//PSOを設定
 
-	//開発用UIの処理
-	ImGui::ShowDemoWindow();
-
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);	//VBVを設定
 
-
+	ImGui_ImplDX12_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
 }
 
 void MyEngine::StateChange()
 {
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dxCommon_->GetCommandList());
+
+
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 
@@ -338,7 +342,6 @@ void MyEngine::Relese()
 	vertexResource_->Release();
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
-
 	if (errorBlob_)
 	{
 		errorBlob_->Release();

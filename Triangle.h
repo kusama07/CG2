@@ -17,7 +17,7 @@ public:
 
 	void Finalize();
 
-	void Update();
+	void Update(const Vector4& material);
 
 private:
 	void SettingVertex();
@@ -27,6 +27,8 @@ private:
 	void Move();
 
 private:
+
+	Vector4 Material[4] = {};
 
 	HRESULT hr_;
 

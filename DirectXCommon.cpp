@@ -33,8 +33,8 @@ void DirectXCommon::Initialize(HWND hwnd) {
 }
 
 void DirectXCommon::PreDraw() {
-
 	CommandKick();
+
 }
 
 void DirectXCommon::PostDraw() {
@@ -124,7 +124,7 @@ void DirectXCommon::ImGuiInitialize()
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
-	ImGui_ImplWin32_Init(winApp_.GetHwnd());
+	ImGui_ImplWin32_Init(hwnd_);
 	ImGui_ImplDX12_Init(device_,
 		swapChainDesc_.BufferCount,
 		rtvDesc_.Format,
@@ -230,6 +230,10 @@ void DirectXCommon::Relese() {
 	CloseHandle(fenceEvent_);
 	fence_->Release();
 
+	ImGui_ImplDX12_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	rtvDescriptorHeap_->Release();
 	srvDescriptorHeap_->Release();
 	swapChainResources_[0]->Release();
@@ -252,6 +256,8 @@ void DirectXCommon::Relese() {
 	}
 }
 WinApp DirectXCommon::winApp_;
+
+HWND DirectXCommon::hwnd_;
 
 //D3D12Deviceの生成
 ID3D12Device* DirectXCommon::device_;

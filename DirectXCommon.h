@@ -55,6 +55,8 @@ public:
 
 	static void ImGuiInitialize();
 
+	ID3D12DescriptorHeap* GetsrvDescriptor() { return srvDescriptorHeap_; }
+
 private:
 	void InitializeDXGIDevice();
 
@@ -75,7 +77,7 @@ private:
 private:
 	static WinApp winApp_;
 
-	HWND hwnd_;
+	static HWND hwnd_;
 
 	//　DXGIファクトリー生成
 	IDXGIFactory7* dxgiFactory = nullptr;
@@ -84,6 +86,7 @@ private:
 	// 使用するアダプタ用の変数
 	IDXGIAdapter4* useAdapter = nullptr;
 	//
+
 
 	// ディスクリプタヒープの生成
 	static ID3D12DescriptorHeap* rtvDescriptorHeap_;
