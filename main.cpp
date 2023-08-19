@@ -7,6 +7,9 @@
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
+	//COMの初期化
+	CoInitializeEx(0, COINIT_MULTITHREADED);
+
 	WinApp* winApp = new WinApp;
 	DirectXCommon* dxCommon = new DirectXCommon;
 	MyEngine* myEngine = new MyEngine;
@@ -90,6 +93,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	winApp->EndApp();
 	myEngine->Finalize();
 	dxCommon->PostDraw();
+
+	CoUninitialize();
 
 	return 0;
 }

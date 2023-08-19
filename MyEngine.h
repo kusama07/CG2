@@ -6,6 +6,7 @@
 #include "ConvertString.h"
 #include "WinApp.h"
 #include <assert.h>
+#include "externals/DirectXTex/DirectXTex.h"
 
 #pragma comment(lib,"dxcompiler.lib")
 
@@ -111,5 +112,7 @@ private:
 	uint64_t fenceValue_;
 
 	Vector4* vertexData_;
+
+	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
 };
