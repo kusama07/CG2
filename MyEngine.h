@@ -26,6 +26,10 @@ public:
 
 	void Finalize();
 
+	DirectX::ScratchImage LoadTexture(const std::string& filePath);
+
+	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureHandleGPU() { return textureSrvHandleGPU_; }
+
 private:
 
 	IDxcBlob* CompileShader
@@ -74,13 +78,13 @@ private:
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_{};
 
-	D3D12_ROOT_PARAMETER rootParameters[2] = {};
+	D3D12_ROOT_PARAMETER rootParameters[3] = {};
 
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
 	ID3D12RootSignature* rootSignature_ = nullptr;
 
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[1] = {};
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[2] = {};
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_{};
 
 	D3D12_BLEND_DESC blendDesc_{};
@@ -113,6 +117,14 @@ private:
 
 	Vector4* vertexData_;
 
-	DirectX::ScratchImage LoadTexture(const std::string& filePath);
+	ID3D12Resource* textureResource_ = nullptr;
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+
+	DirectX::ScratchImage createmip(const std::string& filePath);
+
+	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
+
+	void UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
 
 };

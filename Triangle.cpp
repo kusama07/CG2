@@ -1,20 +1,26 @@
 #include "Triangle.h"
 #include <cassert>
 
-void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& material)
+void Triangle::Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vector4& a, const Vector4& b, const Vector4& c, const Vector4& material)
 {
 	dxCommon_ = dxCommon;
+	engine_ = engine;
 	SettingVertex();
 	Settingcolor();
 
 	transform_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
 
 	//左下
-	vertexData_[0] = a;
+	vertexData_[0].position = a;	
+	vertexData_[0].texcoord = { 0.0f,1.0f };
+
 	//上
-	vertexData_[1] = b;
+	vertexData_[1].position = b;
+	vertexData_[1].texcoord = { 0.5f,0.0f };
+
 	//右下
-	vertexData_[2] = c;
+	vertexData_[2].position = c;
+	vertexData_[2].texcoord = { 1.0f,1.0f };
 
 	*materialData_ = material;
 
@@ -28,10 +34,12 @@ void Triangle::Initialize(DirectXCommon* dxCommon, const Vector4& a, const Vecto
 }
 
 void Triangle::Update(const Vector4& material) {
-	Move();
+	//Move();
 	for (int i = 0; i < 4; i++) {
 		*materialData_ = material;
 	}
+	
+
 }
 
 void Triangle::Draw()
@@ -46,6 +54,9 @@ void Triangle::Draw()
 	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
+
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
 
@@ -114,11 +125,11 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 	return Resource_;
 }
 
-void Triangle::Move() {
-
-	transform_.rotate.y += 0.03f;
-	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-
-	*wvpData_ = worldMatrix_;
-
-}
+//void Triangle::Move() {
+//
+//	transform_.rotate.y += 0.03f;
+//	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+//
+//	*wvpData_ = worldMatrix_;
+//
+//}

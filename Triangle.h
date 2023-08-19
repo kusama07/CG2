@@ -5,13 +5,14 @@
 #include "MyMath.h"
 #include "Matrix4x4.h"
 #include "MyEngine.h"
+#include "VertexData.h"
 
 class MyEngine;
 
 class Triangle
 {
 public:
-	void Initialize(DirectXCommon* dxCommon, const Vector4&a, const Vector4& b, const Vector4& c,const Vector4& material);
+	void Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vector4&a, const Vector4& b, const Vector4& c,const Vector4& material);
 
 	void Draw();
 
@@ -36,8 +37,6 @@ private:
 
 	DirectXCommon* dxCommon_;
 
-	Vector4* vertexData_;
-
 	Vector4* materialData_;
 
 	ID3D12Resource* vertexResource_;
@@ -61,5 +60,7 @@ private:
 	Matrix4x4 worldMatrix_;
 
 	Transform transform_;
+
+	VertexData* vertexData_;
 
 };
