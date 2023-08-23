@@ -7,6 +7,7 @@
 #include "WinApp.h"
 #include <assert.h>
 #include "externals/DirectXTex/DirectXTex.h"
+#include "VertexData.h"
 
 #pragma comment(lib,"dxcompiler.lib")
 
@@ -115,7 +116,7 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE RTVHandle_[2];
 	uint64_t fenceValue_;
 
-	Vector4* vertexData_;
+	VertexData* vertexData_;
 
 	ID3D12Resource* textureResource_ = nullptr;
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;

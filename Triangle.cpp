@@ -38,7 +38,6 @@ void Triangle::Update(const Vector4& material) {
 	for (int i = 0; i < 4; i++) {
 		*materialData_ = material;
 	}
-	
 
 }
 

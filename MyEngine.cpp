@@ -17,7 +17,6 @@ void MyEngine::Initialize()
 	SettingRasterizerState();
 	ShaderCompile();
 	CreatePSO();
-	VertexResource();
 
 }
 
@@ -235,38 +234,6 @@ void MyEngine::CreatePSO()
 	assert(SUCCEEDED(hr_));
 }
 
-void MyEngine::VertexResource()
-{
-	//頂点リソース用のヒープの設定
-	D3D12_HEAP_PROPERTIES uplodeHeapProperties{};
-	uplodeHeapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;//UploadHeapを使う
-	//バッファリソース。テクスチャの場合はまた別の設定をする
-	vertexResourceDesc_.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	vertexResourceDesc_.Width = sizeof(Vector4) * 3;//リソースサイズ　今回はvector4を四分割
-	//バッファの場合はこれらは１にする決まり
-	vertexResourceDesc_.Height = 1;
-	vertexResourceDesc_.DepthOrArraySize = 1;
-	vertexResourceDesc_.MipLevels = 1;
-	vertexResourceDesc_.SampleDesc.Count = 1;
-	//バッファの場合はこれにする決まり
-	vertexResourceDesc_.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	//実際に頂点リソースを作る
-	hr_ = dxCommon_->GetDevice()->CreateCommittedResource(&uplodeHeapProperties,
-		D3D12_HEAP_FLAG_NONE, &vertexResourceDesc_, D3D12_RESOURCE_STATE_GENERIC_READ, 
-		nullptr, IID_PPV_ARGS(&vertexResource_));
-
-	assert(SUCCEEDED(hr_));
-	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
-	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView_.SizeInBytes = sizeof(Vector4) * 3;
-	//1頂点あたりのサイズ
-	vertexBufferView_.StrideInBytes = sizeof(Vector4);
-	//書き込むためのアドレスを取得
-	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
-
-}
-
 void MyEngine::Render()
 {
 
@@ -371,7 +338,6 @@ void MyEngine::Relese()
 	{
 		textureResource_->Release();
 	}
-	vertexResource_->Release();
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
 	if (errorBlob_)
