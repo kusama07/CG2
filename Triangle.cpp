@@ -34,10 +34,8 @@ void Triangle::Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vecto
 }
 
 void Triangle::Update(const Vector4& material) {
-	//Move();
-	for (int i = 0; i < 4; i++) {
-		*materialData_ = material;
-	}
+	Move();
+	*materialData_ = material;
 
 }
 
@@ -70,16 +68,16 @@ void Triangle::Finalize()
 
 void Triangle::SettingVertex()
 {
-	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Vector4) * 3);
+	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 3);
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 
 	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView_.SizeInBytes = sizeof(Vector4) * 3;
+	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 3;
 
 	//1頂点当たりのサイズ
-	vertexBufferView_.StrideInBytes = sizeof(Vector4);
+	vertexBufferView_.StrideInBytes = sizeof(VertexData);
 
 	//書き込むためのアドレスを取得
 	vertexResource_->Map(0, nullptr, reinterpret_cast<void**>(&vertexData_));
@@ -124,11 +122,11 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 	return Resource_;
 }
 
-//void Triangle::Move() {
-//
-//	transform_.rotate.y += 0.03f;
-//	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
-//
-//	*wvpData_ = worldMatrix_;
-//
-//}
+void Triangle::Move() {
+
+	transform_.rotate.y += 0.03f;
+	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
+
+	*wvpData_ = worldMatrix_;
+
+}
