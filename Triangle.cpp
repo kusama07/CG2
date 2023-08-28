@@ -22,6 +22,15 @@ void Triangle::Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vecto
 	vertexData_[2].position = c;
 	vertexData_[2].texcoord = { 1.0f,1.0f };
 
+	vertexData_[3].position = { -0.5f,-0.8f,0.5f,1.0f };
+	vertexData_[3].texcoord = { 0.0f,1.0f };
+
+	vertexData_[4].position = { 0.0f,-0.4f,0.0f,1.0f };
+	vertexData_[4].texcoord = { 0.5f,0.0f };
+
+	vertexData_[5].position = { 0.5f,-0.8f,-0.5f,1.0f };
+	vertexData_[5].texcoord = { 1.0f,1.0f };
+
 	*materialData_ = material;
 
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
@@ -55,7 +64,7 @@ void Triangle::Draw()
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
 
 	//描画
-	dxCommon_->GetCommandList()->DrawInstanced(3, 1, 0, 0);
+	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
 
 }
 
@@ -68,13 +77,13 @@ void Triangle::Finalize()
 
 void Triangle::SettingVertex()
 {
-	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 3);
+	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 6);
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferView_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
 
 	//使用するリソースのサイズは頂点3つ分のサイズ
-	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 3;
+	vertexBufferView_.SizeInBytes = sizeof(VertexData) * 6;
 
 	//1頂点当たりのサイズ
 	vertexBufferView_.StrideInBytes = sizeof(VertexData);
@@ -124,7 +133,7 @@ ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t size
 
 void Triangle::Move() {
 
-	transform_.rotate.y += 0.03f;
+	transform_.rotate.y += 0.02f;
 	worldMatrix_ = MakeAffineMatrix(transform_.scale, transform_.rotate, transform_.translate);
 
 	*wvpData_ = worldMatrix_;

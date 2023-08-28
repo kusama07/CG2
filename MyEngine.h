@@ -56,8 +56,6 @@ private:
 
 	void CreatePSO();
 
-	void VertexResource();
-
 	void Render();
 
 	void StateChange();
@@ -127,5 +125,8 @@ private:
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
 
 	void UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
+
+	//DepthStencilStateの設定
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
 
 };

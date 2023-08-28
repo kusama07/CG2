@@ -33,7 +33,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	for (int i = 0; i < 4; i++)
 	{
 		triangleData[i][0] = { -0.2f + (i * 0.4f),-0.8f,0.0f,1.0f };
-		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.4f,0.0f,1.0f };
+		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.2f,0.0f,1.0f };
 		triangleData[i][2] = { 0.2f + (i * 0.4f),-0.8f,0.0f,1.0f };
 		Material[i] = { Material[i].x ,Material[i].y ,Material[i].w , 1.0f };
 		triangle[i] = new Triangle;

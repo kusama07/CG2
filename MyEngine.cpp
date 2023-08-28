@@ -227,8 +227,17 @@ void MyEngine::CreatePSO()
 	//どのように画面に色を打ち込むのかの設定（気にしなく良い）
 	graphicsPipelineStateDesc_.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc_.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
-	//実際に生成
 
+	//Depthの機能を有効化する
+	depthStencilDesc.DepthEnable = true;
+	//書き込みします
+	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	//比較関数はLessEqual。つまり、近ければ描画される
+	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+	//DepthStencilの設定
+	graphicsPipelineStateDesc_.DepthStencilState = depthStencilDesc;
+	graphicsPipelineStateDesc_.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	//実際に生成
 	hr_ = dxCommon_->GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc_,
 		IID_PPV_ARGS(&graphicsPipelineState_));
 	assert(SUCCEEDED(hr_));
@@ -274,6 +283,13 @@ void MyEngine::Render()
 	dxCommon_->GetCommandList()->ClearRenderTargetView(dxCommon_->GetRTVHandle(backBufferIndex), clearcolor, 0, nullptr);
 
 	ID3D12DescriptorHeap* descriptorHeaps[] = { dxCommon_->GetsrvDescriptor()};
+
+	//描画先のRTVのDSVを設定する
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxCommon_->GetdsvDescriptor()->GetCPUDescriptorHandleForHeapStart();
+	dxCommon_->GetCommandList()->OMSetRenderTargets(1, &dxCommon_->GetRTVHandle(backBufferIndex), false, &dsvHandle);
+	//指定した深度で画面全体をクリアする
+	dxCommon_->GetCommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
 	dxCommon_->GetCommandList()->SetDescriptorHeaps(1, descriptorHeaps);
 
 	//コマンドを積む

@@ -209,6 +209,19 @@ void DirectXCommon::CreateRTV() {
 	rtvHandles_[1].ptr = rtvHandles_[0].ptr + device_->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	//2つ目を作る
 	device_->CreateRenderTargetView(swapChainResources_[1], &rtvDesc_, rtvHandles_[1]);
+
+	depthStencilResource_ = CreateDepthStencilTextureResource(winApp_.GetWidth(), winApp_.GetHeight());
+
+	dsvDescriptorHeap_ = CreateDescriptorHeap(device_, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+
+	//DSVの設定
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+
+	//DSVHeapの先頭にDSVをつくる
+	device_->CreateDepthStencilView(depthStencilResource_, &dsvDesc, dsvDescriptorHeap_->GetCPUDescriptorHandleForHeapStart());
+
+
 }
 
 void DirectXCommon::CreateFence() {
@@ -223,6 +236,42 @@ void DirectXCommon::CreateFence() {
 
 void DirectXCommon::CommandKick(){
 
+}
+
+ID3D12Resource* DirectXCommon::CreateDepthStencilTextureResource(int32_t width, int32_t height){
+
+	//生成するResourceの設定
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = width;
+	resourceDesc.Height = height;
+	resourceDesc.MipLevels = 1;
+	resourceDesc.DepthOrArraySize = 1;
+	resourceDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	//利用するHeapの設定
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	//深度値のクリア設定
+	D3D12_CLEAR_VALUE depthClearValue{};
+	depthClearValue.DepthStencil.Depth = 1.0f;
+	depthClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	//Resourceの生成
+	ID3D12Resource* resource = nullptr;
+	hr_ = device_->CreateCommittedResource(
+		&heapProperties, D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&depthClearValue,
+		IID_PPV_ARGS(&resource)
+	);
+
+	assert(SUCCEEDED(hr_));
+	return resource;
 }
 
 
@@ -245,6 +294,10 @@ void DirectXCommon::Relese() {
 	device_->Release();
 	useAdapter->Release();
 	dxgiFactory->Release();
+
+	depthStencilResource_->Release();
+	dsvDescriptorHeap_->Release();
+
 	CloseWindow(hwnd_);
 	////リソースリークチェック
 	IDXGIDebug1* debug;

@@ -57,6 +57,8 @@ public:
 
 	ID3D12DescriptorHeap* GetsrvDescriptor() { return srvDescriptorHeap_; }
 
+	ID3D12DescriptorHeap* GetdsvDescriptor() { return dsvDescriptorHeap_; }
+
 private:
 	void InitializeDXGIDevice();
 
@@ -97,6 +99,9 @@ private:
 
 	static ID3D12DescriptorHeap* srvDescriptorHeap_;
 
+	static inline ID3D12DescriptorHeap* dsvDescriptorHeap_;
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
 
 	static HRESULT hr_;
 
@@ -137,5 +142,9 @@ private:
 	//
 
 	ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE heapType, UINT numDescriptors, bool shaderVisible);
+
+	ID3D12Resource* CreateDepthStencilTextureResource(int32_t width, int32_t height);
+
+	static inline ID3D12Resource* depthStencilResource_;
 
 };
