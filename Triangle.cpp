@@ -77,6 +77,7 @@ void Triangle::Finalize()
 
 void Triangle::SettingVertex()
 {
+
 	vertexResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 6);
 
 	//リソースの先頭のアドレスから使う

@@ -120,7 +120,7 @@ private:
 	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
 	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
 
-	DirectX::ScratchImage createmip(const std::string& filePath);
+	DirectX::ScratchImage createmap(const std::string& filePath);
 
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
 

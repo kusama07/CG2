@@ -50,3 +50,6 @@ Matrix4x4 MakeIdentity4x4();
 
 //透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovY, float aspectRadio, float nearClip, float farClip);
+
+//平行投射行列
+Matrix4x4 MakeOrthoGraphicMatrix(float left, float top, float right, float bottom, float nearClip, float farClip);
