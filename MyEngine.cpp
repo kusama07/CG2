@@ -365,7 +365,7 @@ void MyEngine::Relese()
 	vertexShaderBlob_->Release();
 }
 
-DirectX::ScratchImage MyEngine::createmip(const std::string& filePath)
+DirectX::ScratchImage MyEngine::createmap(const std::string& filePath)
 {
 	//テクスチャファイルを読んでプログラムで扱えるようにする
 	DirectX::ScratchImage image{};
@@ -428,7 +428,7 @@ void MyEngine::UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchI
 
 DirectX::ScratchImage MyEngine::LoadTexture(const std::string& filePath)
 {
-	DirectX::ScratchImage mipImages = createmip(filePath);
+	DirectX::ScratchImage mipImages = createmap(filePath);
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
 	textureResource_ = CreateTextureResource(dxCommon_->GetDevice(), metadata);
 	UploadTexturData(textureResource_, mipImages);
