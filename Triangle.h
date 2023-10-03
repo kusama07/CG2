@@ -63,4 +63,22 @@ private:
 
 	VertexData* vertexData_;
 
+	VertexData* vertexDataSprite_;
+
+	//sprite用
+	ID3D12Resource* vertexResourceSprite_;
+	//頂点バッファビュー
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite_;
+	//TransformationMatrix用のリソース
+	ID3D12Resource* transformationMatrixResourceSprite_;
+	//データを書き込む
+	Matrix4x4* transformationMatrixDataSprite_;
+	//Transform
+	Transform transformSprite_;
+	//worldViewProjectionMatirx
+	Matrix4x4 worldMatrixSprite_;
+	Matrix4x4 viewMatrixSprite_;
+	Matrix4x4 projectionMatrixSprite_;
+	Matrix4x4 worldViewProjectionMatrixSprite_;
+
 };
