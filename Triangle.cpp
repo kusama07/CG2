@@ -96,25 +96,31 @@ void Triangle::Draw()
 
 	//VBVを設定
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
-	//Spriteの描画。変更が必要なものだけ変更する
-	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_);
 
 	//形状を設定。PS0にせっていしているものとはまた別。同じものを設定する
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+
+	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
-	//TransformationMatrixBufferの場所を設定
-	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
-	
+
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
 
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
+
+	// Spriteの描画
+	//Spriteの描画。変更が必要なものだけ変更する
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_);
+
+	//TransformationMatrixBufferの場所を設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
+
+
 	//sprite描画
-	dxCommon_->GetCommandList()->DrawInstanced(0, 1, 0, 0);
+	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
 
 }
 
