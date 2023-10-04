@@ -35,6 +35,8 @@ private:
 
 	MyEngine* engine_;
 
+	WinApp winApp_;
+
 	DirectXCommon* dxCommon_;
 
 	Vector4* materialData_;

@@ -61,9 +61,6 @@ void Triangle::Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vecto
 
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
-	
-	//Sprite
-	vertexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
 
 	//Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
 	transformationMatrixResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
@@ -74,9 +71,13 @@ void Triangle::Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vecto
 	//谷行列を書き込んでおく
 	*transformationMatrixDataSprite_ = MakeIdentity4x4();
 
+	//Sprite用のworldViewProjectionMatrixを作る
 	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
 	viewMatrixSprite_ = MakeIdentity4x4();
-	projectionMatrixSprite_ = MakeOrthoGraphicMatrix(0.0f,0.0f,float())
+	projectionMatrixSprite_ = MakeOrthoGraphicMatrix(0.0f, 0.0f, float(winApp_.GetWidth()), float(winApp_.GetHeight()), 0.0f, 100.0f);
+	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
+	*transformationMatrixDataSprite_ = worldViewProjectionMatrixSprite_;
+
 	*wvpData_ = MakeIdentity4x4();
 
 	worldMatrix_ = MakeIdentity4x4();
@@ -95,6 +96,8 @@ void Triangle::Draw()
 
 	//VBVを設定
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferView_);
+	//Spriteの描画。変更が必要なものだけ変更する
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_);
 
 	//形状を設定。PS0にせっていしているものとはまた別。同じものを設定する
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -102,11 +105,16 @@ void Triangle::Draw()
 	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
+	//TransformationMatrixBufferの場所を設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
+	
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
 
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
+	//sprite描画
+	dxCommon_->GetCommandList()->DrawInstanced(0, 1, 0, 0);
 
 }
 
@@ -114,6 +122,8 @@ void Triangle::Finalize()
 {
 	materialResource_->Release();
 	vertexResource_->Release();
+	vertexResourceSprite_->Release();
+	transformationMatrixResourceSprite_->Release();
 	wvpResource_->Release();
 }
 
@@ -147,6 +157,10 @@ void Triangle::SettingVertex()
 
 	//1頂点当たりのサイズ
 	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
+
+	//Sprite
+	vertexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
+
 
 	//***************************************//
 
