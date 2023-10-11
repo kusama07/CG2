@@ -1,4 +1,6 @@
 #pragma once
+#include <cmath>
+#include <numbers>
 
 #include "DirectXCommon.h"
 #include "Vector4.h"
@@ -6,6 +8,7 @@
 #include "Matrix4x4.h"
 #include "MyEngine.h"
 #include "VertexData.h"
+#include "Sphere.h"
 
 class MyEngine;
 
@@ -26,6 +29,8 @@ private:
 	void Settingcolor();
 
 	void Move();
+
+	void SettingSphereVertex(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix);
 
 private:
 
@@ -82,5 +87,33 @@ private:
 	Matrix4x4 viewMatrixSprite_;
 	Matrix4x4 projectionMatrixSprite_;
 	Matrix4x4 worldViewProjectionMatrixSprite_;
+
+	///**********Sphere
+	//球の頂点データを書き込む最初の場所
+	uint32_t latIndex_;
+	uint32_t lonIndex_;
+	//分割数
+	uint32_t kSubdivison_;
+
+	//vertexResources
+	ID3D12Resource* vertexResourceSphere_;
+	//頂点バッファビュー
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
+	//TransformationMatrix用のリソース
+	ID3D12Resource* transformationMatrixResourceSphere_;
+	//データを書き込む
+	Matrix4x4* transformationMatrixDataSphere_;
+	//Transform
+	Transform transformSphare_;
+	//vertexData
+	VertexData* vertexDataSphere_;
+
+	ID3D12Resource* wvpResourceSphere_;
+	Matrix4x4* wvpDataSphere_;
+
+	Matrix4x4 worldMatrixSphere_;
+	Matrix4x4 viewMatrixSphere_;
+	Matrix4x4 projectionMatrixSphere_;
+	Matrix4x4 worldViewProjectionMatrixSphere_;
 
 };
