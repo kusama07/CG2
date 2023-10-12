@@ -9,28 +9,39 @@
 #include "MyEngine.h"
 #include "VertexData.h"
 #include "Sphere.h"
+#include "Vector2.h"
 
 class MyEngine;
 
 class Triangle
 {
 public:
-	void Initialize(DirectXCommon* dxCommon, MyEngine* engine, const Vector4&a, const Vector4& b, const Vector4& c,const Vector4& material);
+	void Initialize();
+	
+	void Update(const Vector4& material);
 
-	void Draw();
+	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix);
+	
+	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix);
+
+	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom);
 
 	void Finalize();
 
-	void Update(const Vector4& material);
-
 private:
-	void SettingVertex();
-
 	void Settingcolor();
 
 	void Move();
 
-	void SettingSphereVertex(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix);
+	void VertexBufferViewTriangle();
+
+	void VertexBufferViewSphere();
+
+	void VertexBufferViewSprite();
+
+public:
+	//データを書き込む
+	Matrix4x4* transformationMatrixDataSphere_;
 
 private:
 
@@ -90,10 +101,9 @@ private:
 
 	///**********Sphere
 	//球の頂点データを書き込む最初の場所
-	uint32_t latIndex_;
-	uint32_t lonIndex_;
+
 	//分割数
-	uint32_t kSubdivison_;
+	const int kSubdivison_ = 16;
 
 	//vertexResources
 	ID3D12Resource* vertexResourceSphere_;
@@ -101,10 +111,8 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSphere_;
 	//TransformationMatrix用のリソース
 	ID3D12Resource* transformationMatrixResourceSphere_;
-	//データを書き込む
-	Matrix4x4* transformationMatrixDataSphere_;
 	//Transform
-	Transform transformSphare_;
+	Transform transformSphere_;
 	//vertexData
 	VertexData* vertexDataSphere_;
 

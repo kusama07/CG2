@@ -3,12 +3,16 @@
 #include "Triangle.h"
 #include "WinApp.h"
 #include "DirectXCommon.h"
+#include "Sphere.h"
+#include "camera.h"
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 	//COMの初期化
 	CoInitializeEx(0, COINIT_MULTITHREADED);
+
+	Sphere sphere;
 
 	WinApp* winApp = new WinApp;
 	DirectXCommon* dxCommon = new DirectXCommon;
@@ -19,16 +23,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	dxCommon->Initialize(winApp->GetHwnd());
 	myEngine->Initialize();
 
+	Camera* camera = new Camera;
+	uint32_t kClientWidht = 1280;
+	uint32_t kClientHeight = 720;
+	camera->Initialize(kClientWidht, kClientHeight);
+
 	myEngine->LoadTexture("resource/uvChecker.png");
 
+	
 	Vector4 triangleData[10][3];
-	Triangle* triangle[4];
+	Triangle* triangle;
 	Vector4 Material[4] = { { 1,1,1,1 },{ 1,1,1,1 },{ 1,1,1,1 }, { 1,1,1,1 } };
 	float materialcolor[3] = { Material[0].x ,Material[0].y ,Material[0].w };
 	float materialcolor1[3] = { Material[1].x ,Material[1].y ,Material[1].w };
 	float materialcolor2[3] = { Material[2].x ,Material[2].y ,Material[2].w };
 	float materialcolor3[3] = { Material[3].x ,Material[3].y ,Material[3].w };
-
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -36,9 +45,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.2f,0.0f,1.0f };
 		triangleData[i][2] = { 0.2f + (i * 0.4f),-0.8f,0.0f,1.0f };
 		Material[i] = { Material[i].x ,Material[i].y ,Material[i].w , 1.0f };
-		triangle[i] = new Triangle;
-		triangle[i]->Initialize(dxCommon, myEngine, triangleData[i][0], triangleData[i][1], triangleData[i][2],Material[i]);
+	
 	}
+
+	triangle = new Triangle;
+	triangle->transformationMatrixDataSphere_ = new Matrix4x4;
+	triangle->Initialize();
 
 	MSG msg{};
 
@@ -77,21 +89,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			Material[3].y = materialcolor3[1];
 			Material[3].w = materialcolor3[2];
 
-			for (int i = 0; i < 4; i++) {
+			camera->Updata();
 
-				triangle[i]->Update(Material[i]);
+			triangle->Update(Material[0]);
 
-				triangle[i]->Draw();
+			triangle->DrawSphere(sphere, camera->transformMatrix_);
 
-			}
 			myEngine->UpdateEnd();
 		}
 	}
 
-	for (int i = 0; i < 4; i++) {
-		triangle[i]->Finalize();
+	triangle->Finalize();
 
-	}
 	winApp->EndApp();
 	myEngine->Finalize();
 	dxCommon->PostDraw();

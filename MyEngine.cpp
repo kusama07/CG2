@@ -350,10 +350,9 @@ void MyEngine::StateChange()
 
 void MyEngine::Relese()
 {
-	for (int i = 0; i < 4; i++)
-	{
-		textureResource_->Release();
-	}
+	
+	textureResource_->Release();
+	
 	graphicsPipelineState_->Release();
 	signatureBlob_->Release();
 	if (errorBlob_)
