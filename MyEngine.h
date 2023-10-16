@@ -6,8 +6,8 @@
 #include "ConvertString.h"
 #include "WinApp.h"
 #include <assert.h>
-#include "externals/DirectXTex/DirectXTex.h"
 #include "VertexData.h"
+#include "externals/DirectXTex/DirectXTex.h"
 
 #pragma comment(lib,"dxcompiler.lib")
 
@@ -26,10 +26,6 @@ public:
 	void UpdateEnd();
 
 	void Finalize();
-
-	DirectX::ScratchImage LoadTexture(const std::string& filePath);
-
-	D3D12_GPU_DESCRIPTOR_HANDLE GetTextureHandleGPU() { return textureSrvHandleGPU_; }
 
 private:
 
@@ -65,7 +61,6 @@ private:
 	WinApp winApp_;
 	DirectXCommon* dxCommon_ = new DirectXCommon;
 
-	/*Triangle* triangle_[11];*/
 	int triangleCount_;
 
 	HRESULT hr_;
@@ -115,16 +110,6 @@ private:
 	uint64_t fenceValue_;
 
 	VertexData* vertexData_;
-
-	ID3D12Resource* textureResource_ = nullptr;
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
-
-	DirectX::ScratchImage createmap(const std::string& filePath);
-
-	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
-
-	void UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
 
 	//DepthStencilStateの設定
 	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};

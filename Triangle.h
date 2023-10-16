@@ -11,12 +11,17 @@
 #include "Sphere.h"
 #include "Vector2.h"
 
+#include "externals/DirectXTex/DirectXTex.h"
+#include "externals/DirectXTex/d3dx12.h"
+#include <Vector>
+
+
 class MyEngine;
 
 class Triangle
 {
 public:
-	void Initialize();
+	void Initialize(DirectXCommon* dxCommon);
 	
 	void Update(const Vector4& material);
 
@@ -27,6 +32,8 @@ public:
 	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom);
 
 	void Finalize();
+
+	DirectX::ScratchImage LoadTexture(const std::string& filePath);
 
 private:
 	void Settingcolor();
@@ -65,7 +72,6 @@ private:
 
 	ID3D12Resource* Resource_;
 
-	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 	D3D12_HEAP_PROPERTIES uplodeHeapProperties{};
 
@@ -123,5 +129,20 @@ private:
 	Matrix4x4 viewMatrixSphere_;
 	Matrix4x4 projectionMatrixSphere_;
 	Matrix4x4 worldViewProjectionMatrixSphere_;
+
+	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
+
+	DirectX::ScratchImage createmap(const std::string& filePath);
+
+	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
+
+	ID3D12Resource* UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
+
+	ID3D12Resource* textureResource_ = nullptr;
+
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+
+	ID3D12Resource* intermediateResource_ = nullptr;
 
 };

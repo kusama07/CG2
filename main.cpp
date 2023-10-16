@@ -12,27 +12,22 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//COMの初期化
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
-	Sphere sphere;
-
-	WinApp* winApp = new WinApp;
-	DirectXCommon* dxCommon = new DirectXCommon;
-	MyEngine* myEngine = new MyEngine;
+	WinApp* winApp = new WinApp();
+	DirectXCommon* dxCommon = new DirectXCommon();
+	MyEngine* myEngine = new MyEngine();
 
 	// ゲームシーンの初期化
 	winApp->StartApp();
 	dxCommon->Initialize(winApp->GetHwnd());
 	myEngine->Initialize();
+	Triangle* triangle = new Triangle();
+	Camera* camera = new Camera();
 
-	Camera* camera = new Camera;
 	uint32_t kClientWidht = 1280;
 	uint32_t kClientHeight = 720;
 	camera->Initialize(kClientWidht, kClientHeight);
 
-	myEngine->LoadTexture("resource/uvChecker.png");
-
-	
 	Vector4 triangleData[10][3];
-	Triangle* triangle;
 	Vector4 Material[4] = { { 1,1,1,1 },{ 1,1,1,1 },{ 1,1,1,1 }, { 1,1,1,1 } };
 	float materialcolor[3] = { Material[0].x ,Material[0].y ,Material[0].w };
 	float materialcolor1[3] = { Material[1].x ,Material[1].y ,Material[1].w };
@@ -41,16 +36,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	for (int i = 0; i < 4; i++)
 	{
-		triangleData[i][0] = { -0.2f + (i * 0.4f),-0.8f,0.0f,1.0f };
-		triangleData[i][1] = { 0.0f + (i * 0.4f),-0.2f,0.0f,1.0f };
-		triangleData[i][2] = { 0.2f + (i * 0.4f),-0.8f,0.0f,1.0f };
 		Material[i] = { Material[i].x ,Material[i].y ,Material[i].w , 1.0f };
 	
 	}
 
-	triangle = new Triangle;
+
+	Sphere sphere = { {0.0f,0.0f,0.0f},16 };
 	triangle->transformationMatrixDataSphere_ = new Matrix4x4;
-	triangle->Initialize();
+	triangle->Initialize(dxCommon);
+	triangle->LoadTexture("resource/uvChecker.png");
 
 	MSG msg{};
 
@@ -100,7 +94,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	triangle->Finalize();
-
 	winApp->EndApp();
 	myEngine->Finalize();
 	dxCommon->PostDraw();

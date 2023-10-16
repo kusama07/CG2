@@ -16,16 +16,16 @@ private:
 
 	uint32_t kClientHeight_;
 
+	Transform cameraTransform_{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,-7.0f},
+	};
+
 	Transform transform_{
 		{1.0f,1.0f,1.0f},
 		{0.0f,0.0f,0.0f},
 		{0.0f,0.0f,0.0f},
-	};
-
-	Transform cameraTransform_{
-		{1.0f,1.0f,1.0f},
-		{0.0f,0.0f,0.0f},
-		{0.0f,0.0f,-0.7f},
 	};
 
 	Matrix4x4 worldMatrix_;

@@ -1,8 +1,10 @@
 #include "Triangle.h"
 #include <cassert>
 
-void Triangle::Initialize()
+void Triangle::Initialize(DirectXCommon* dxCommon)
 {
+	dxCommon_ = dxCommon;
+
 	//TriangleのvertexBufferViewを作成
 	VertexBufferViewTriangle();
 
@@ -15,9 +17,6 @@ void Triangle::Initialize()
 	Settingcolor();
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
-
-	*wvpData_ = MakeIdentity4x4();
-	worldMatrix_ = MakeIdentity4x4();
 
 }
 
@@ -38,9 +37,9 @@ void Triangle::Finalize()
 	vertexResourceSphere_->Release();
 	transformationMatrixResourceSphere_->Release();
 
-	vertexResourceSphere_->Release();
-	transformationMatrixResourceSphere_->Release();
+	textureResource_->Release();
 
+	intermediateResource_->Release();
 }
 
 void Triangle::Move() {
@@ -149,7 +148,7 @@ void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
 
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
@@ -227,7 +226,7 @@ void Triangle::VertexBufferViewSphere()
 
 	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
 
-	vertexBufferViewSphere_.BufferLocation = vertexResource_->GetGPUVirtualAddress();
+	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
 
 	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_;
 
@@ -299,7 +298,7 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 		worldMatrixSphere_ = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
 
 		//単位行列を書き込んでおく
-		*transformationMatrixDataSphere_ = Multiply(worldMatrix_,viewProjectionMatrix);
+		*transformationMatrixDataSphere_ = Multiply(worldMatrixSphere_,viewProjectionMatrix);
 
 		//球の描画
 		dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -313,9 +312,98 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSphere_->GetGPUVirtualAddress());
 
 		//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, engine_->GetTextureHandleGPU());
+		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
 
 		//sphere描画
 		dxCommon_->GetCommandList()->DrawInstanced(kSubdivison_ * kSubdivison_ * 6, 1, 0, 0);
 	}
+}
+
+DirectX::ScratchImage Triangle::createmap(const std::string& filePath)
+{
+	//テクスチャファイルを読んでプログラムで扱えるようにする
+	DirectX::ScratchImage image{};
+	std::wstring filePathW = ConvertString(filePath);
+	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+	assert(SUCCEEDED(hr));
+
+	//ミップマップの生成
+	DirectX::ScratchImage mipImages{};
+	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
+	assert(SUCCEEDED(hr));
+
+	//ミップマップ付きのデータを返す
+	return mipImages;
+}
+
+ID3D12Resource* Triangle::CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata)
+{
+	//metadataを基にResourceの設定
+	D3D12_RESOURCE_DESC resourceDesc{};
+	resourceDesc.Width = UINT(metadata.width);
+	resourceDesc.Height = UINT(metadata.height);
+	resourceDesc.MipLevels = UINT16(metadata.mipLevels);
+	resourceDesc.DepthOrArraySize = UINT16(metadata.arraySize);
+	resourceDesc.Format = metadata.format;
+	resourceDesc.SampleDesc.Count = 1;
+	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION(metadata.dimension);
+
+	//利用するHeapの設定
+	D3D12_HEAP_PROPERTIES heapProperties{};
+	heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	//Resourceの生成
+	ID3D12Resource* resource = nullptr;
+	HRESULT hr = device->CreateCommittedResource(&heapProperties, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&resource));
+	assert(SUCCEEDED(hr));
+
+	return resource;
+}
+
+ID3D12Resource* Triangle::UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages)
+{
+	std::vector<D3D12_SUBRESOURCE_DATA>subresources;
+	DirectX::PrepareUpload(dxCommon_->GetDevice(), mipImages.GetImages(), mipImages.GetImageCount(), mipImages.GetMetadata(), subresources);
+	uint64_t intermediateSize = GetRequiredIntermediateSize(texture, 0, UINT(subresources.size()));
+	ID3D12Resource* intermediateResource = CreateBufferResource(dxCommon_->GetDevice(), intermediateSize);
+	UpdateSubresources(dxCommon_->GetCommandList(), texture, intermediateResource, 0, 0, UINT(subresources.size()), subresources.data());
+	//Textureへの転送後は利用できるように、D3D12_RESOURCE_STATE_COPY_DESTからD3D12_RESOURCE_STATE_GENERIC_READへResourceStateを変更する
+	D3D12_RESOURCE_BARRIER barrier{};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = texture;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_GENERIC_READ;
+	dxCommon_->GetCommandList()->ResourceBarrier(1, &barrier);
+	return intermediateResource;
+}
+
+DirectX::ScratchImage Triangle::LoadTexture(const std::string& filePath)
+{
+	DirectX::ScratchImage mipImages = createmap(filePath);
+	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
+	textureResource_ = CreateTextureResource(dxCommon_->GetDevice(), metadata);
+	intermediateResource_ = UploadTexturData(textureResource_, mipImages);
+
+	//metaDataを基にSRVの設定
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
+	srvDesc.Format = metadata.format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
+
+	//SRVを作成するDescriptorHeapの場所を決める
+	textureSrvHandleCPU_ = dxCommon_->GetsrvDescriptor()->GetCPUDescriptorHandleForHeapStart();
+	textureSrvHandleGPU_ = dxCommon_->GetsrvDescriptor()->GetGPUDescriptorHandleForHeapStart();
+
+	//先頭はImGuiが使っているのでその次を使う
+	textureSrvHandleCPU_.ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU_.ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	//SRVの作成
+	dxCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
+
+	return mipImages;
 }
