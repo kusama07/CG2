@@ -118,7 +118,13 @@ private:
 	//TransformationMatrix用のリソース
 	ID3D12Resource* transformationMatrixResourceSphere_;
 	//Transform
-	Transform transformSphere_;
+	Transform transformSphere_
+	{
+		{1.0f,1.0f,1.0f},
+		{0.0f,0.0f,0.0f},
+		{0.0f,0.0f,0.0f},
+	};
+
 	//vertexData
 	VertexData* vertexDataSphere_;
 
