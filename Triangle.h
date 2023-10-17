@@ -25,15 +25,15 @@ public:
 	
 	void Update(const Vector4& material);
 
-	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix);
+	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix,const int index);
 	
-	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix);
+	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index);
 
 	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom);
 
 	void Finalize();
 
-	DirectX::ScratchImage LoadTexture(const std::string& filePath);
+	int LoadTexture(const std::string& filePath);
 
 private:
 	void Settingcolor();
@@ -144,11 +144,23 @@ private:
 
 	ID3D12Resource* UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
 
-	ID3D12Resource* textureResource_ = nullptr;
+	//Texture関連
+	static const int kMaxTexture = 2;
+	bool checkTextureIndex[kMaxTexture];
 
-	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_;
-	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_;
+	ID3D12Resource* textureResource_[kMaxTexture];
 
-	ID3D12Resource* intermediateResource_ = nullptr;
+	D3D12_CPU_DESCRIPTOR_HANDLE textureSrvHandleCPU_[kMaxTexture];
+	D3D12_GPU_DESCRIPTOR_HANDLE textureSrvHandleGPU_[kMaxTexture];
 
+	ID3D12Resource* intermediateResource_[kMaxTexture];
+
+	//DescriptorHandle取得関数
+	D3D12_CPU_DESCRIPTOR_HANDLE GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
+	D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index);
+	//DescriptorSize
+	uint32_t descriptorSizeSRV;
+	uint32_t descriptorSizeRTV;
+	uint32_t descriptorSizeDSV;
+	
 };

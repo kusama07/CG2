@@ -18,6 +18,16 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
 
+	descriptorSizeSRV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	descriptorSizeRTV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	descriptorSizeDSV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+
+	for (int i = 0; i < kMaxTexture; i++)
+	{
+		checkTextureIndex[i] = false;
+		textureResource_[i] = nullptr;
+		intermediateResource_[i] = nullptr;
+	}
 }
 
 void Triangle::Update(const Vector4& material) {
@@ -37,9 +47,14 @@ void Triangle::Finalize()
 	vertexResourceSphere_->Release();
 	transformationMatrixResourceSphere_->Release();
 
-	textureResource_->Release();
+	for (int i = 0; i < kMaxTexture; i++) {
 
-	intermediateResource_->Release();
+		if (checkTextureIndex[i] == true)
+		{
+			textureResource_[i]->Release();
+			intermediateResource_[i]->Release();
+		}
+	}
 }
 
 void Triangle::Move() {
@@ -108,7 +123,7 @@ void Triangle::VertexBufferViewTriangle()
 
 }
 
-void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix)
+void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix, const int index)
 {
 	//transformの初期化
 
@@ -148,7 +163,7 @@ void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
 
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
 
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
@@ -234,7 +249,7 @@ void Triangle::VertexBufferViewSphere()
 
 }
 
-void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix) {
+void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index) {
 
 	//経度分割1つ分の角度φ
 	const float kLonEvery = float(std::numbers::pi) * 2.0f / float(kSubdivison_);
@@ -312,7 +327,7 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSphere_->GetGPUVirtualAddress());
 
 		//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_);
+		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
 
 		//sphere描画
 		dxCommon_->GetCommandList()->DrawInstanced(kSubdivison_ * kSubdivison_ * 6, 1, 0, 0);
@@ -380,12 +395,31 @@ ID3D12Resource* Triangle::UploadTexturData(ID3D12Resource* texture, const Direct
 	return intermediateResource;
 }
 
-DirectX::ScratchImage Triangle::LoadTexture(const std::string& filePath)
+int Triangle::LoadTexture(const std::string& filePath)
 {
+	int spriteIndex = 0;
+
+	for (int i = 0; i < kMaxTexture; ++i) {
+		if (checkTextureIndex[i] == false) {
+			spriteIndex = i;
+			checkTextureIndex[i] = true;
+
+			break;
+		}
+	}
+
+	if (spriteIndex < 0) {
+		assert(false);
+	}
+
+	if (kMaxTexture < spriteIndex) {
+		assert(false);
+	}
+
 	DirectX::ScratchImage mipImages = createmap(filePath);
 	const DirectX::TexMetadata& metadata = mipImages.GetMetadata();
-	textureResource_ = CreateTextureResource(dxCommon_->GetDevice(), metadata);
-	intermediateResource_ = UploadTexturData(textureResource_, mipImages);
+	textureResource_[spriteIndex] = CreateTextureResource(dxCommon_->GetDevice(), metadata);
+	intermediateResource_[spriteIndex] = UploadTexturData(textureResource_[spriteIndex], mipImages);
 
 	//metaDataを基にSRVの設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -395,15 +429,29 @@ DirectX::ScratchImage Triangle::LoadTexture(const std::string& filePath)
 	srvDesc.Texture2D.MipLevels = UINT(metadata.mipLevels);
 
 	//SRVを作成するDescriptorHeapの場所を決める
-	textureSrvHandleCPU_ = dxCommon_->GetsrvDescriptor()->GetCPUDescriptorHandleForHeapStart();
-	textureSrvHandleGPU_ = dxCommon_->GetsrvDescriptor()->GetGPUDescriptorHandleForHeapStart();
+	textureSrvHandleCPU_[spriteIndex] = GetCPUDescriptorHandle(dxCommon_->GetsrvDescriptor(), descriptorSizeSRV, spriteIndex);
+	textureSrvHandleGPU_[spriteIndex] = GetGPUDescriptorHandle(dxCommon_->GetsrvDescriptor(), descriptorSizeSRV, spriteIndex);
 
 	//先頭はImGuiが使っているのでその次を使う
-	textureSrvHandleCPU_.ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	textureSrvHandleGPU_.ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleCPU_[spriteIndex].ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	textureSrvHandleGPU_[spriteIndex].ptr += dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	//SRVの作成
-	dxCommon_->GetDevice()->CreateShaderResourceView(textureResource_, &srvDesc, textureSrvHandleCPU_);
+	dxCommon_->GetDevice()->CreateShaderResourceView(textureResource_[spriteIndex], &srvDesc, textureSrvHandleCPU_[spriteIndex]);
 
-	return mipImages;
+	return spriteIndex;
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE Triangle::GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index)
+{	
+	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	handleCPU.ptr += (descriptorSize * index);
+	return handleCPU;
+}
+
+D3D12_GPU_DESCRIPTOR_HANDLE Triangle::GetGPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index)
+{
+	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
+	handleGPU.ptr += (descriptorSize * index);
+	return handleGPU;
 }

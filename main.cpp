@@ -27,7 +27,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	uint32_t kClientHeight = 720;
 	camera->Initialize(kClientWidht, kClientHeight);
 
-	Vector4 triangleData[10][3];
 	Vector4 Material[4] = { { 1,1,1,1 },{ 1,1,1,1 },{ 1,1,1,1 }, { 1,1,1,1 } };
 	float materialcolor[3] = { Material[0].x ,Material[0].y ,Material[0].w };
 	float materialcolor1[3] = { Material[1].x ,Material[1].y ,Material[1].w };
@@ -40,11 +39,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	
 	}
 
-
 	Sphere sphere = { {0.0f,0.0f,0.0f},16 };
 	triangle->transformationMatrixDataSphere_ = new Matrix4x4;
 	triangle->Initialize(dxCommon);
-	triangle->LoadTexture("resource/uvChecker.png");
+	int uvChecker = triangle->LoadTexture("resource/uvChecker.png");
+	int monsterBall = triangle->LoadTexture("resource/monsterBall.png");
+	int sphereTexture;
+	bool textureChangeFlag = false;
 
 	MSG msg{};
 
@@ -67,6 +68,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::ColorEdit3("material", materialcolor3);
 			ImGui::End();
 
+			ImGui::Begin("SphereTexture");
+			ImGui::Checkbox("texture", &textureChangeFlag);
+			ImGui::End();
+
 			Material[0].x = materialcolor[0];
 			Material[0].y = materialcolor[1];
 			Material[0].w = materialcolor[2];
@@ -83,11 +88,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			Material[3].y = materialcolor3[1];
 			Material[3].w = materialcolor3[2];
 
+			if (textureChangeFlag == true) {
+				sphereTexture = monsterBall;
+			}
+			else {
+				sphereTexture = uvChecker;
+			}
+
 			camera->Updata();
 
 			triangle->Update(Material[0]);
 
-			triangle->DrawSphere(sphere, camera->transformMatrix_);
+			triangle->DrawSphere(sphere, camera->transformMatrix_, sphereTexture);
 
 			myEngine->UpdateEnd();
 		}
