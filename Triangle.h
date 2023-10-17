@@ -10,6 +10,7 @@
 #include "VertexData.h"
 #include "Sphere.h"
 #include "Vector2.h"
+#include "Material.h"
 
 #include "externals/DirectXTex/DirectXTex.h"
 #include "externals/DirectXTex/d3dx12.h"

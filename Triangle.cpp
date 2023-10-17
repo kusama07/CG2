@@ -199,6 +199,7 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	//1枚目の三角形
 	vertexDataSprite_[0].position = { 0.0f,360.0f,0.0f,1.0f };//左下
 	vertexDataSprite_[0].texcoord = { 0.0f,1.0f };
+	vertexDataSprite_[0].normal = { 0.0f,0.0f,-1.0f };
 
 	vertexDataSprite_[1].position = { 0.0f,0.0f,0.0f,1.0f };//左上
 	vertexDataSprite_[1].texcoord = { 0.0f,0.0f };
@@ -275,36 +276,56 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 			vertexDataSphere_[start].position.w = cos(lat) * sin(lon) + sphere.center.z;
 			vertexDataSphere_[start].position.h = 1.0f;
 			vertexDataSphere_[start].texcoord = { u,v + uvLength };
+			vertexDataSphere_[start].normal.x = vertexDataSphere_[start].position.x;
+			vertexDataSphere_[start].normal.y = vertexDataSphere_[start].position.y;
+			vertexDataSphere_[start].normal.z = vertexDataSphere_[start].position.w;
 
 			vertexDataSphere_[start + 1].position.x = cos(lat + kLatEvery) * cos(lon) + sphere.center.x;
 			vertexDataSphere_[start + 1].position.y = sin(lat + kLatEvery) + sphere.center.y;
 			vertexDataSphere_[start + 1].position.w = cos(lat + kLatEvery) * sin(lon) + sphere.center.z;
 			vertexDataSphere_[start + 1].position.h = 1.0f;
 			vertexDataSphere_[start + 1].texcoord = { u,v };
+			vertexDataSphere_[start + 1].normal.x = vertexDataSphere_[start + 1].position.x;
+			vertexDataSphere_[start + 1].normal.y = vertexDataSphere_[start + 1].position.y;
+			vertexDataSphere_[start + 1].normal.z = vertexDataSphere_[start + 1].position.w;
 
 			vertexDataSphere_[start + 2].position.x = cos(lat) * cos(lon + kLonEvery) + sphere.center.x;
 			vertexDataSphere_[start + 2].position.y = sin(lat) + sphere.center.y;
 			vertexDataSphere_[start + 2].position.w = cos(lat) * sin(lon + kLonEvery) + sphere.center.z;
 			vertexDataSphere_[start + 2].position.h = 1.0f;
 			vertexDataSphere_[start + 2].texcoord = { u + uvLength, v + uvLength };
+			vertexDataSphere_[start + 2].normal.x = vertexDataSphere_[start + 2].position.x;
+			vertexDataSphere_[start + 2].normal.y = vertexDataSphere_[start + 2].position.y;
+			vertexDataSphere_[start + 2].normal.z = vertexDataSphere_[start + 2].position.w;
 
 			vertexDataSphere_[start + 3].position.x = cos(lat + kLatEvery) * cos(lon + kLonEvery) + sphere.center.x;
 			vertexDataSphere_[start + 3].position.y = sin(lat + kLatEvery) + sphere.center.y;
 			vertexDataSphere_[start + 3].position.w = cos(lat + kLatEvery) * sin(lon + kLonEvery) + sphere.center.z;
 			vertexDataSphere_[start + 3].position.h = 1.0f;
 			vertexDataSphere_[start + 3].texcoord = { u + uvLength,v };
+			vertexDataSphere_[start + 3].normal.x = vertexDataSphere_[start + 3].position.x;
+			vertexDataSphere_[start + 3].normal.y = vertexDataSphere_[start + 3].position.y;
+			vertexDataSphere_[start + 3].normal.z = vertexDataSphere_[start + 3].position.w;
 
 			vertexDataSphere_[start + 4].position.x = cos(lat) * cos(lon + kLonEvery) + sphere.center.x;
 			vertexDataSphere_[start + 4].position.y = sin(lat) + sphere.center.y;
 			vertexDataSphere_[start + 4].position.w = cos(lat) * sin(lon + kLonEvery) + sphere.center.z;
 			vertexDataSphere_[start + 4].position.h = 1.0f;
 			vertexDataSphere_[start + 4].texcoord = { u + uvLength, v + uvLength };
+			vertexDataSphere_[start + 4].normal.x = vertexDataSphere_[start + 4].position.x;
+			vertexDataSphere_[start + 4].normal.y = vertexDataSphere_[start + 4].position.y;
+			vertexDataSphere_[start + 4].normal.z = vertexDataSphere_[start + 4].position.w;
+
 
 			vertexDataSphere_[start + 5].position.x = cos(lat + kLatEvery) * cos(lon) + sphere.center.x;
 			vertexDataSphere_[start + 5].position.y = sin(lat + kLatEvery) + sphere.center.y;
 			vertexDataSphere_[start + 5].position.w = cos(lat + kLatEvery) * sin(lon) + sphere.center.z;
 			vertexDataSphere_[start + 5].position.h = 1.0f;
 			vertexDataSphere_[start + 5].texcoord = { u,v };
+			vertexDataSphere_[start + 5].normal.x = vertexDataSphere_[start + 5].position.x;
+			vertexDataSphere_[start + 5].normal.y = vertexDataSphere_[start + 5].position.y;
+			vertexDataSphere_[start + 5].normal.z = vertexDataSphere_[start + 5].position.w;
+
 		}	
 
 		//データを書き込むためのアドレスを取得

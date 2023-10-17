@@ -76,6 +76,8 @@ private:
 
 	void CommandKick();
 
+	void InputLayout();
+
 private:
 	static WinApp winApp_;
 
@@ -146,5 +148,9 @@ private:
 	ID3D12Resource* CreateDepthStencilTextureResource(int32_t width, int32_t height);
 
 	static inline ID3D12Resource* depthStencilResource_;
+
+	//インプットレイアウト
+	D3D12_INPUT_LAYOUT_DESC inputLayOutDesc_{};
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[2];
 
 };
