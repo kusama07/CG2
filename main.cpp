@@ -47,9 +47,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	int sphereTexture;
 	bool textureChangeFlag = false;
 
-	// directionalLight
-	Vector3 direction;
-
 	MSG msg{};
 
 	//ウィンドウのxが押されるまでループ
@@ -73,12 +70,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			ImGui::Begin("SphereTexture");
 			ImGui::Checkbox("texture", &textureChangeFlag);
-			ImGui::End();
-			
-			ImGui::Begin("DirectionalLight");
-			ImGui::SliderFloat("direction", &direction.x, -1.0f, 1.0f);
-			ImGui::SliderFloat("direction", &direction.y, -1.0f, 1.0f);
-			ImGui::SliderFloat("direction", &direction.z, -1.0f, 1.0f);
 			ImGui::End();
 
 			Material[0].x = materialcolor[0];
@@ -104,9 +95,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				sphereTexture = uvChecker;
 			}
 
-			camera->Updata();
+			triangle->TriangleImGui();
 
-			triangle->Update(Material[0], direction);
+			camera->Updata();
 
 			triangle->DrawSphere(sphere, camera->transformMatrix_, sphereTexture, Material[0]);
 
