@@ -1,6 +1,5 @@
 #include "MyEngine.h"
 
-
 MyEngine::MyEngine()
 {
 	fenceValue_ = dxCommon_->GetFenceValue();
@@ -138,6 +137,11 @@ void MyEngine::CreateRootSignature()
 	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;
 	rootParameters[2].DescriptorTable.NumDescriptorRanges = _countof(descriptorRange);
 
+	// Bind情報を追加
+	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;// CBVを使う
+	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;// Pixelshaderで使う
+	rootParameters[3].Descriptor.ShaderRegister = 1;// レジスタ番号1を使う
+
 	D3D12_STATIC_SAMPLER_DESC staticSamplers[1] = {};
 	staticSamplers[0].Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
 	staticSamplers[0].AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -149,6 +153,7 @@ void MyEngine::CreateRootSignature()
 	staticSamplers[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 	descriptionRootSignature_.pStaticSamplers = staticSamplers;
 	descriptionRootSignature_.NumStaticSamplers = _countof(staticSamplers);
+
 
 	//シリアライズしてバイナリにする
 	hr_ = D3D12SerializeRootSignature(&descriptionRootSignature_,
@@ -175,6 +180,11 @@ void MyEngine::SettingInputLayout()
 	inputElementDescs_[1].SemanticIndex = 0;
 	inputElementDescs_[1].Format = DXGI_FORMAT_R32G32_FLOAT;
 	inputElementDescs_[1].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+
+	inputElementDescs_[2].SemanticName = "NORMAL";
+	inputElementDescs_[2].SemanticIndex = 0;
+	inputElementDescs_[2].Format = DXGI_FORMAT_R32G32_FLOAT;
+	inputElementDescs_[2].AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
 
 	inputLayoutDesc_.pInputElementDescs = inputElementDescs_;
 	inputLayoutDesc_.NumElements = _countof(inputElementDescs_);

@@ -40,12 +40,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	Sphere sphere = { {0.0f,0.0f,0.0f},16 };
-	triangle->transformationMatrixDataSphere_ = new Matrix4x4;
+	triangle->transformationMatrixDataSphere_ = new TransformationMatrix;
 	triangle->Initialize(dxCommon);
 	int uvChecker = triangle->LoadTexture("resource/uvChecker.png");
 	int monsterBall = triangle->LoadTexture("resource/monsterBall.png");
 	int sphereTexture;
 	bool textureChangeFlag = false;
+
+	// directionalLight
+	Vector3 direction;
 
 	MSG msg{};
 
@@ -70,6 +73,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			ImGui::Begin("SphereTexture");
 			ImGui::Checkbox("texture", &textureChangeFlag);
+			ImGui::End();
+			
+			ImGui::Begin("DirectionalLight");
+			ImGui::SliderFloat("direction", &direction.x, -1.0f, 1.0f);
+			ImGui::SliderFloat("direction", &direction.y, -1.0f, 1.0f);
+			ImGui::SliderFloat("direction", &direction.z, -1.0f, 1.0f);
 			ImGui::End();
 
 			Material[0].x = materialcolor[0];
@@ -97,9 +106,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			camera->Updata();
 
-			triangle->Update(Material[0]);
+			triangle->Update(Material[0], direction);
 
-			triangle->DrawSphere(sphere, camera->transformMatrix_, sphereTexture);
+			triangle->DrawSphere(sphere, camera->transformMatrix_, sphereTexture, Material[0]);
 
 			myEngine->UpdateEnd();
 		}

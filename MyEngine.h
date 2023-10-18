@@ -72,13 +72,13 @@ private:
 
 	D3D12_ROOT_SIGNATURE_DESC descriptionRootSignature_{};
 
-	D3D12_ROOT_PARAMETER rootParameters[3] = {};
+	D3D12_ROOT_PARAMETER rootParameters[4] = {};
 
 	ID3DBlob* signatureBlob_;
 	ID3DBlob* errorBlob_;
 	ID3D12RootSignature* rootSignature_ = nullptr;
 
-	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[2] = {};
+	D3D12_INPUT_ELEMENT_DESC inputElementDescs_[3] = {};
 	D3D12_INPUT_LAYOUT_DESC inputLayoutDesc_{};
 
 	D3D12_BLEND_DESC blendDesc_{};

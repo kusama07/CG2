@@ -11,6 +11,8 @@
 #include "Sphere.h"
 #include "Vector2.h"
 #include "Material.h"
+#include "TransformationMatrix.h"
+#include "DirectionalLight.h"
 
 #include "externals/DirectXTex/DirectXTex.h"
 #include "externals/DirectXTex/d3dx12.h"
@@ -24,11 +26,11 @@ class Triangle
 public:
 	void Initialize(DirectXCommon* dxCommon);
 	
-	void Update(const Vector4& material);
+	void Update(const Vector4& material,const Vector3& direction);
 
 	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix,const int index);
 	
-	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index);
+	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
 
 	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom);
 
@@ -49,11 +51,11 @@ private:
 
 public:
 	//データを書き込む
-	Matrix4x4* transformationMatrixDataSphere_;
+	TransformationMatrix* transformationMatrixDataSphere_;
 
 private:
 
-	Vector4 Material[4] = {};
+	Vector4 MaterialTriangle[4] = {};
 
 	HRESULT hr_;
 
@@ -69,7 +71,7 @@ private:
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView_;
 
-	ID3D12Resource* materialResource_;
+	ID3D12Resource* materialResourceTriangle_;
 
 	ID3D12Resource* Resource_;
 
@@ -90,7 +92,7 @@ private:
 
 	VertexData* vertexDataSprite_;
 
-	//sprite用
+	//***********sprite用
 	ID3D12Resource* vertexResourceSprite_;
 	//頂点バッファビュー
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewSprite_;
@@ -105,6 +107,10 @@ private:
 	Matrix4x4 viewMatrixSprite_;
 	Matrix4x4 projectionMatrixSprite_;
 	Matrix4x4 worldViewProjectionMatrixSprite_;
+	//sprite用のmaterialData
+	Material* materialDataSprite_;
+	// materialResource
+	ID3D12Resource* materialResourceSprite_;
 
 	///**********Sphere
 	//球の頂点データを書き込む最初の場所
@@ -137,6 +143,13 @@ private:
 	Matrix4x4 projectionMatrixSphere_;
 	Matrix4x4 worldViewProjectionMatrixSphere_;
 
+	// Sphere用のmaterialData
+	Material* materialDataSphere_;
+	// materialResource
+	ID3D12Resource* materialResourceSphere_;
+
+	//**************Texture関連
+
 	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);
 
 	DirectX::ScratchImage createmap(const std::string& filePath);
@@ -144,8 +157,6 @@ private:
 	ID3D12Resource* CreateTextureResource(ID3D12Device* device, const DirectX::TexMetadata& metadata);
 
 	ID3D12Resource* UploadTexturData(ID3D12Resource* texture, const DirectX::ScratchImage& mipImages);
-
-	//Texture関連
 	static const int kMaxTexture = 2;
 	bool checkTextureIndex[kMaxTexture];
 
@@ -163,5 +174,9 @@ private:
 	uint32_t descriptorSizeSRV;
 	uint32_t descriptorSizeRTV;
 	uint32_t descriptorSizeDSV;
+
+	//****************平行光源関連
+	DirectionlLight* directionalLightData_;
+	ID3D12Resource* directionalLightResource_;
 	
 };

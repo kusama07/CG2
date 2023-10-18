@@ -18,6 +18,14 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
 
+	// directionalLightにBufferResourceを作る
+	directionalLightResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(DirectionlLight));
+	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
+	// デフォルト値はとりあえず以下のようにしておく
+	directionalLightData_->color = { 1.0f,1.0f,1.0f,1.0f };
+	directionalLightData_->direction = { 0.0f,-1.0f,0.0f };
+	directionalLightData_->intensity = 1.0f;
+
 	descriptorSizeSRV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	descriptorSizeRTV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	descriptorSizeDSV = dxCommon_->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
@@ -28,16 +36,20 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 		textureResource_[i] = nullptr;
 		intermediateResource_[i] = nullptr;
 	}
+
 }
 
-void Triangle::Update(const Vector4& material) {
+void Triangle::Update(const Vector4& material,const Vector3& direction) {
 	Move();
 	*materialData_ = material;
+	// DirectionalLight
+	directionalLightData_->direction = direction;
+
 }
 
 void Triangle::Finalize()
 {
-	materialResource_->Release();
+	materialResourceTriangle_->Release();
 	vertexResource_->Release();
 
 	vertexResourceSprite_->Release();
@@ -46,6 +58,11 @@ void Triangle::Finalize()
 
 	vertexResourceSphere_->Release();
 	transformationMatrixResourceSphere_->Release();
+
+	materialResourceSprite_->Release();
+	materialResourceSphere_->Release();
+
+	directionalLightResource_->Release();
 
 	for (int i = 0; i < kMaxTexture; i++) {
 
@@ -68,9 +85,9 @@ void Triangle::Move() {
 
 void Triangle::Settingcolor() {
 	//マテリアル用のリソースを作る　今回はcolor1つ分	
-	materialResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Vector4));
+	materialResourceTriangle_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Vector4));
 	//書き込むためのアドレスを取得	
-	materialResource_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
+	materialResourceTriangle_->Map(0, nullptr, reinterpret_cast<void**>(&materialData_));
 }
 
 ID3D12Resource* Triangle::CreateBufferResource(ID3D12Device* device, size_t sizeInBytes)
@@ -157,13 +174,16 @@ void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c
 	//形状を設定。PS0にせっていしているものとはまた別。同じものを設定する
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceTriangle_->GetGPUVirtualAddress());
 
 	// マテリアルCBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, wvpResource_->GetGPUVirtualAddress());
 
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
 	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
+
+	// Lightingの場所設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
 	//描画
 	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
@@ -177,6 +197,9 @@ void Triangle::VertexBufferViewSprite() {
 
 	//Sprite用の頂点リソースを作る
 	vertexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 6);
+
+	// materialResource作成
+	materialResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferViewSprite_.BufferLocation = vertexResourceSprite_->GetGPUVirtualAddress();
@@ -217,6 +240,12 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	vertexDataSprite_[5].position = { 640.f,360.0f,0.0f,1.0f };//右上
 	vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
 
+	// materialResourceをMapしてデータを書き込む。
+	materialResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite_));
+
+	// materialにLightingを有効にするかどうか
+	materialDataSprite_->enableLighting = false;
+
 	//データを書き込むためのアドレスを取得
 	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
 
@@ -238,7 +267,10 @@ void Triangle::VertexBufferViewSphere()
 {
 	vertexResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice() , sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_);
 
-	transformationMatrixResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
+	transformationMatrixResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
+
+	// materialResource作成
+	materialResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
 
 	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
 
@@ -250,7 +282,7 @@ void Triangle::VertexBufferViewSphere()
 
 }
 
-void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index) {
+void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material) {
 
 	//経度分割1つ分の角度φ
 	const float kLonEvery = float(std::numbers::pi) * 2.0f / float(kSubdivison_);
@@ -328,18 +360,29 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 
 		}	
 
+		// MaterialResourceをMapしてデータを書き込む。
+		materialResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSphere_));
+
+		// materialにlightingを有効にするかどうか
+		materialDataSphere_->enableLighting = true;
+
+		//色指定
+		materialDataSphere_->color = material;
+
 		//データを書き込むためのアドレスを取得
 		transformationMatrixResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSphere_));
 
 		worldMatrixSphere_ = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
 
 		//単位行列を書き込んでおく
-		*transformationMatrixDataSphere_ = Multiply(worldMatrixSphere_,viewProjectionMatrix);
+		transformationMatrixDataSphere_->WVP = Multiply(worldMatrixSphere_,viewProjectionMatrix);
+
+		transformationMatrixDataSphere_->World = MakeIdentity4x4();
 
 		//球の描画
 		dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResource_->GetGPUVirtualAddress());
+		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceSphere_->GetGPUVirtualAddress());
 
 		//球の描画。変更が必要なものだけ変更する
 		dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_);
@@ -349,6 +392,9 @@ void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionM
 
 		//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
 		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
+
+		// Lightingの場所設定
+		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
 		//sphere描画
 		dxCommon_->GetCommandList()->DrawInstanced(kSubdivison_ * kSubdivison_ * 6, 1, 0, 0);
