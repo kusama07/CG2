@@ -523,8 +523,3 @@ D3D12_GPU_DESCRIPTOR_HANDLE Triangle::GetGPUDescriptorHandle(ID3D12DescriptorHea
 	return handleGPU;
 }
 
-void Triangle::TriangleImGui() {
-	ImGui::Begin("DirectionalLight");
-	ImGui::SliderFloat3("direction", &directionalLightData_->direction, -1.0f, 1.0f);
-	ImGui::End();
-}

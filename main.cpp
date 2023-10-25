@@ -72,6 +72,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			ImGui::Checkbox("texture", &textureChangeFlag);
 			ImGui::End();
 
+
 			Material[0].x = materialcolor[0];
 			Material[0].y = materialcolor[1];
 			Material[0].w = materialcolor[2];
@@ -95,7 +96,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				sphereTexture = uvChecker;
 			}
 
-			triangle->TriangleImGui();
+			//triangle->TriangleImGui();
 
 			camera->Updata();
 

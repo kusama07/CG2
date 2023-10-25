@@ -38,7 +38,7 @@ public:
 
 	int LoadTexture(const std::string& filePath);
 
-	void TriangleImGui();
+	//void TriangleImGui();
 
 private:
 	void Settingcolor();
