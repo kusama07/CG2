@@ -98,7 +98,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 				uvChecker = monsterBall;
 			}
 			else {
-				uvChecker = uvChecker;
+				monsterBall = uvChecker;
 			}
 
 			//triangle->TriangleImGui();

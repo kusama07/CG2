@@ -195,29 +195,31 @@ void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c
 
 void Triangle::VertexBufferViewSprite() {
 
-	//Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-	transformationMatrixResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
 
 	//Sprite用の頂点リソースを作る
-	vertexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 6);
+	vertexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 4);
 
 	// materialResource作成
-	materialResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
+	materialResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material) * kMaxSprite_);
+
+	//Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
+	transformationMatrixResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
+	
+	//index用のResourcesを作成
+	indexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(uint32_t) * kMaxSpriteVertex_);
+
+	//Sprite
+	vertexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferViewSprite_.BufferLocation = vertexResourceSprite_->GetGPUVirtualAddress();
 
-	//index用のResourcesを作成
-	indexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(uint32_t) * 6);
-
 	//使用するリソースのサイズは頂点6つ分のサイズ
-	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
+	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 4;
 
 	//1頂点当たりのサイズ
 	vertexBufferViewSprite_.StrideInBytes = sizeof(VertexData);
 
-	//Sprite
-	vertexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSprite_));
 
 }
 
@@ -225,13 +227,34 @@ void Triangle::IndexBufferViewSprite() {
 	//リソースの先頭のアドレスから使う
 	indexBufferViewSprite_.BufferLocation = indexResourceSprite_->GetGPUVirtualAddress();
 	//使用するリソースのサイズはインデックス6つ分のサイズ
-	indexBufferViewSprite_.SizeInBytes = sizeof(uint32_t) * 6;
+	indexBufferViewSprite_.SizeInBytes = sizeof(uint32_t) * kMaxSpriteVertex_;
 	//インデックスはuint32_tとする
 	indexBufferViewSprite_.Format = DXGI_FORMAT_R32_UINT;
 
 }
 
 void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom, int index, const Vector4& material) {
+	int spriteIndex = kMaxSpriteVertex_ + 1;
+
+	for (int i = 0; i < kMaxSprite_; ++i)
+	{
+		if (CheckSpriteIndex_[i] == false)
+		{
+			spriteIndex = (i * 6);
+			CheckSpriteIndex_[i] = true;
+			break;
+		}
+	}
+
+	if (spriteIndex < 0)
+	{
+		assert(false);
+	}
+
+	if (kMaxSpriteVertex_ < spriteIndex)
+	{
+		assert(false);
+	}
 
 	//1枚目の三角形
 	vertexDataSprite_[0].position = leftBottom;//左下
@@ -249,21 +272,12 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	//インデックスリソースにデータを書き込む
 	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
 
-	indexDataSprite_[0] = 0;
-	indexDataSprite_[1] = 1;
-	indexDataSprite_[2] = 2;
-	indexDataSprite_[3] = 1;
-	indexDataSprite_[4] = 3;
-	indexDataSprite_[5] = 2;
-
-	//vertexDataSprite_[3].position = { 0.0f,0.0f,0.0f,1.0f };//左上
-	//vertexDataSprite_[3].texcoord = { 0.0f,0.0f };
-
-	//vertexDataSprite_[4].position = { 640.0f,0.0f,0.0f,1.0f };//右上
-	//vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
-
-	//vertexDataSprite_[5].position = { 640.f,360.0f,0.0f,1.0f };//右上
-	//vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
+	indexDataSprite_[spriteIndex] = 0;
+	indexDataSprite_[spriteIndex + 1] = 1;
+	indexDataSprite_[spriteIndex + 2] = 2;
+	indexDataSprite_[spriteIndex + 3] = 1;
+	indexDataSprite_[spriteIndex + 4] = 3;
+	indexDataSprite_[spriteIndex + 5] = 2;
 
 	// materialResourceをMapしてデータを書き込む。
 	materialResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite_));
@@ -274,13 +288,12 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	//色指定
 	materialDataSprite_->color = material;
 
-
 	//データを書き込むためのアドレスを取得
 	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
 	//sprite用のwroldviewProjectionMatirxを作る
 	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
 	viewMatrixSprite_ = MakeIdentity4x4();
-	projectionMatrixSprite_ = MakeOrthoGraphicMatrix(0.0f, 0.0f, winApp_.GetWidth(), winApp_.GetHeight(), 0.0f, 100.0f);
+	projectionMatrixSprite_ = MakeOrthoGraphicMatrix(0.0f, 0.0f, float(winApp_.GetWidth()), float(winApp_.GetHeight()), 0.0f, 100.0f);
 	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
 	//単位行列を書き込んでおく
 	transformationMatrixDataSprite_->WVP = worldViewProjectionMatrixSprite_;						 
@@ -305,7 +318,7 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	// Lightingの場所設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 	//描画(DrawCall)6個のインデックスを利用し1つのインスタンスを描画。その他は当面Θで良い
-	dxCommon_->GetCommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	dxCommon_->GetCommandList()->DrawIndexedInstanced(spriteIndex + 6, 1, 0, 0, 0);
 
 };
 

@@ -123,6 +123,12 @@ private:
 	//indexResourceにデータを書き込む用の変数
 	uint32_t* indexDataSprite_ = nullptr;
 
+	static const int kMaxSprite_ = 3;
+
+	static const int kMaxSpriteVertex_ = kMaxSprite_ * 6;
+
+	bool CheckSpriteIndex_[kMaxSprite_];
+
 private:
 	///**********Sphere
 	//球の頂点データを書き込む最初の場所
