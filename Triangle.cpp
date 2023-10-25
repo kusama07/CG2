@@ -10,6 +10,7 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 
 	//spriteのvertexBufferViewを作成
 	VertexBufferViewSprite();
+	IndexBufferViewSprite();
 
 	//球のvertexBufferViewを作成
 	VertexBufferViewSphere();
@@ -63,6 +64,8 @@ void Triangle::Finalize()
 	materialResourceSphere_->Release();
 
 	directionalLightResource_->Release();
+
+	indexResourceSprite_->Release();
 
 	for (int i = 0; i < kMaxTexture; i++) {
 
@@ -193,7 +196,7 @@ void Triangle::DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c
 void Triangle::VertexBufferViewSprite() {
 
 	//Sprite用のTransformationMatrix用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
-	transformationMatrixResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
+	transformationMatrixResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
 
 	//Sprite用の頂点リソースを作る
 	vertexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * 6);
@@ -203,6 +206,9 @@ void Triangle::VertexBufferViewSprite() {
 
 	//リソースの先頭のアドレスから使う
 	vertexBufferViewSprite_.BufferLocation = vertexResourceSprite_->GetGPUVirtualAddress();
+
+	//index用のResourcesを作成
+	indexResourceSprite_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(uint32_t) * 6);
 
 	//使用するリソースのサイズは頂点6つ分のサイズ
 	vertexBufferViewSprite_.SizeInBytes = sizeof(VertexData) * 6;
@@ -215,30 +221,49 @@ void Triangle::VertexBufferViewSprite() {
 
 }
 
-void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom) {
+void Triangle::IndexBufferViewSprite() {
+	//リソースの先頭のアドレスから使う
+	indexBufferViewSprite_.BufferLocation = indexResourceSprite_->GetGPUVirtualAddress();
+	//使用するリソースのサイズはインデックス6つ分のサイズ
+	indexBufferViewSprite_.SizeInBytes = sizeof(uint32_t) * 6;
+	//インデックスはuint32_tとする
+	indexBufferViewSprite_.Format = DXGI_FORMAT_R32_UINT;
 
-	transformSprite_ = { {1.0f,1.0f,1.0f},{0.0f,0.0f,0.0f},{0.0f,0.0f,0.0f} };
+}
+
+void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom, int index, const Vector4& material) {
 
 	//1枚目の三角形
-	vertexDataSprite_[0].position = { 0.0f,360.0f,0.0f,1.0f };//左下
+	vertexDataSprite_[0].position = leftBottom;//左下
 	vertexDataSprite_[0].texcoord = { 0.0f,1.0f };
-	vertexDataSprite_[0].normal = { 0.0f,0.0f,-1.0f };
 
-	vertexDataSprite_[1].position = { 0.0f,0.0f,0.0f,1.0f };//左上
+	vertexDataSprite_[1].position = leftTop;//左上
 	vertexDataSprite_[1].texcoord = { 0.0f,0.0f };
 
-	vertexDataSprite_[2].position = { 640.0f,360.0f,0.0f,1.0f };//右上
+	vertexDataSprite_[2].position = rightBottom;//右下
 	vertexDataSprite_[2].texcoord = { 1.0f,1.0f };
 
-	//2枚目の三角形
-	vertexDataSprite_[3].position = { 0.0f,0.0f,0.0f,1.0f };//左上
-	vertexDataSprite_[3].texcoord = { 0.0f,0.0f };
+	vertexDataSprite_[3].position = rightTop;//右上
+	vertexDataSprite_[3].texcoord = { 1.0f,0.0f };
 
-	vertexDataSprite_[4].position = { 640.0f,0.0f,0.0f,1.0f };//右上
-	vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
+	//インデックスリソースにデータを書き込む
+	indexResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite_));
 
-	vertexDataSprite_[5].position = { 640.f,360.0f,0.0f,1.0f };//右上
-	vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
+	indexDataSprite_[0] = 0;
+	indexDataSprite_[1] = 1;
+	indexDataSprite_[2] = 2;
+	indexDataSprite_[3] = 1;
+	indexDataSprite_[4] = 3;
+	indexDataSprite_[5] = 2;
+
+	//vertexDataSprite_[3].position = { 0.0f,0.0f,0.0f,1.0f };//左上
+	//vertexDataSprite_[3].texcoord = { 0.0f,0.0f };
+
+	//vertexDataSprite_[4].position = { 640.0f,0.0f,0.0f,1.0f };//右上
+	//vertexDataSprite_[4].texcoord = { 1.0f,0.0f };
+
+	//vertexDataSprite_[5].position = { 640.f,360.0f,0.0f,1.0f };//右上
+	//vertexDataSprite_[5].texcoord = { 1.0f,1.0f };
 
 	// materialResourceをMapしてデータを書き込む。
 	materialResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite_));
@@ -246,20 +271,41 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	// materialにLightingを有効にするかどうか
 	materialDataSprite_->enableLighting = false;
 
+	//色指定
+	materialDataSprite_->color = material;
+
+
 	//データを書き込むためのアドレスを取得
 	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
-
+	//sprite用のwroldviewProjectionMatirxを作る
+	worldMatrixSprite_ = MakeAffineMatrix(transformSprite_.scale, transformSprite_.rotate, transformSprite_.translate);
+	viewMatrixSprite_ = MakeIdentity4x4();
+	projectionMatrixSprite_ = MakeOrthoGraphicMatrix(0.0f, 0.0f, winApp_.GetWidth(), winApp_.GetHeight(), 0.0f, 100.0f);
+	worldViewProjectionMatrixSprite_ = Multiply(worldMatrixSprite_, Multiply(viewMatrixSprite_, projectionMatrixSprite_));
 	//単位行列を書き込んでおく
-	*transformationMatrixDataSprite_ = MakeIdentity4x4();
+	transformationMatrixDataSprite_->WVP = worldViewProjectionMatrixSprite_;						 
+	transformationMatrixDataSprite_->World = MakeIdentity4x4();
+
+	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//Spriteの描画。変更が必要なものだけ変更する
 	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSprite_);
+	//indexのIBVを設定
+	dxCommon_->GetCommandList()->IASetIndexBuffer(&indexBufferViewSprite_);
+
+
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceSprite_->GetGPUVirtualAddress());
 
 	//TransformationMatrixBufferの場所を設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite_->GetGPUVirtualAddress());
 
-	//sprite描画
-	dxCommon_->GetCommandList()->DrawInstanced(6, 1, 0, 0);
+	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
+
+	// Lightingの場所設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
+	//描画(DrawCall)6個のインデックスを利用し1つのインスタンスを描画。その他は当面Θで良い
+	dxCommon_->GetCommandList()->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 };
 

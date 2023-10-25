@@ -40,11 +40,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	Sphere sphere = { {0.0f,0.0f,0.0f},16 };
+
+	Vector4 LeftTop = { 0.0f,0.0f,0.0f,1.0f };
+	Vector4 LeftBottom = { 0.0f,360.0f,0.0f,1.0f };
+	Vector4 RightTop = { 640.0f,0.0f,0.0f,1.0f };
+	Vector4 RightBottom = { 640.0f,360.0f,0.0f,1.0f };
+
 	triangle->transformationMatrixDataSphere_ = new TransformationMatrix;
 	triangle->Initialize(dxCommon);
 	int uvChecker = triangle->LoadTexture("resource/uvChecker.png");
 	int monsterBall = triangle->LoadTexture("resource/monsterBall.png");
-	int sphereTexture;
 	bool textureChangeFlag = false;
 
 	MSG msg{};
@@ -90,17 +95,19 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			Material[3].w = materialcolor3[2];
 
 			if (textureChangeFlag == true) {
-				sphereTexture = monsterBall;
+				uvChecker = monsterBall;
 			}
 			else {
-				sphereTexture = uvChecker;
+				uvChecker = uvChecker;
 			}
 
 			//triangle->TriangleImGui();
 
 			camera->Updata();
 
-			triangle->DrawSphere(sphere, camera->transformMatrix_, sphereTexture, Material[0]);
+			triangle->DrawSprite(LeftTop, RightTop, LeftBottom, RightBottom, uvChecker, Material[0]);
+
+			/*triangle->DrawSphere(sphere, camera->transformMatrix_, uvChecker, Material[0]);*/
 
 			myEngine->UpdateEnd();
 		}

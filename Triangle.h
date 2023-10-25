@@ -32,7 +32,7 @@ public:
 	
 	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
 
-	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom);
+	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom, const int index, const Vector4& material);
 
 	void Finalize();
 
@@ -40,7 +40,7 @@ public:
 
 	//void TriangleImGui();
 
-private:
+private: //*** プライベートな関数 ***//
 	void Settingcolor();
 
 	void Move();
@@ -50,6 +50,8 @@ private:
 	void VertexBufferViewSphere();
 
 	void VertexBufferViewSprite();
+
+	void IndexBufferViewSprite();
 
 public:
 	//データを書き込む
@@ -94,6 +96,7 @@ private:
 
 	VertexData* vertexDataSprite_;
 
+private:
 	//***********sprite用
 	ID3D12Resource* vertexResourceSprite_;
 	//頂点バッファビュー
@@ -101,7 +104,7 @@ private:
 	//TransformationMatrix用のリソース
 	ID3D12Resource* transformationMatrixResourceSprite_;
 	//データを書き込む
-	Matrix4x4* transformationMatrixDataSprite_;
+	TransformationMatrix* transformationMatrixDataSprite_;
 	//Transform
 	Transform transformSprite_;
 	//worldViewProjectionMatirx
@@ -113,7 +116,14 @@ private:
 	Material* materialDataSprite_;
 	// materialResource
 	ID3D12Resource* materialResourceSprite_;
+	//index用のresource
+	ID3D12Resource* indexResourceSprite_;
+	//indexのBufferView
+	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite_{};
+	//indexResourceにデータを書き込む用の変数
+	uint32_t* indexDataSprite_ = nullptr;
 
+private:
 	///**********Sphere
 	//球の頂点データを書き込む最初の場所
 
@@ -149,7 +159,7 @@ private:
 	Material* materialDataSphere_;
 	// materialResource
 	ID3D12Resource* materialResourceSphere_;
-
+private:
 	//**************Texture関連
 
 	ID3D12Resource* CreateBufferResource(ID3D12Device* device, size_t sizeInBytes);

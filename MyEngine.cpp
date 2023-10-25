@@ -333,7 +333,7 @@ void MyEngine::StateChange()
 	ID3D12CommandList* commandLists[] = { dxCommon_->GetCommandList() };
 	dxCommon_->GetCommandQueue()->ExecuteCommandLists(1, commandLists);
 	//GPUとOSに画面の交換を行うよう通知する
-	dxCommon_->GetSwapChain()->Present(1, 0);
+		dxCommon_->GetSwapChain()->Present(1, 0);
 
 	//Fenceの値を更新
 	fenceValue_++;
