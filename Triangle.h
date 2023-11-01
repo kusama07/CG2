@@ -32,11 +32,13 @@ public:
 	
 	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
 
-	void DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom, const int index, const Vector4& material);
+	void DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, const Vector4& rightTop, const Vector4& rightBottom, const int index, const Vector4& material);
 
 	void Finalize();
 
 	int LoadTexture(const std::string& filePath);
+
+	void ResetVertex();
 
 	//void TriangleImGui();
 
@@ -116,8 +118,9 @@ private:
 	Material* materialDataSprite_;
 	// materialResource
 	ID3D12Resource* materialResourceSprite_;
+
 	//index用のresource
-	ID3D12Resource* indexResourceSprite_;
+	ID3D12Resource* indexResourceSprite_ = nullptr;
 	//indexのBufferView
 	D3D12_INDEX_BUFFER_VIEW indexBufferViewSprite_{};
 	//indexResourceにデータを書き込む用の変数

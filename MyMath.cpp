@@ -351,12 +351,14 @@ Matrix4x4 Transpose(const Matrix4x4& m) {
 
 //単位行列
 Matrix4x4 MakeIdentity4x4() {
-	return{
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		0,0,0,1
+	Matrix4x4 result =
+	{
+		1.0f,0.0f,0.0f,0.0f,
+		0.0f,1.0f,0.0f,0.0f,
+		0.0f,0.0f,1.0f,0.0f,
+		0.0f,0.0f,0.0f,1.0f
 	};
+	return result;
 }
 
 float contangent(float b, float a) {

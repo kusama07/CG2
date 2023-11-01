@@ -233,7 +233,7 @@ void Triangle::IndexBufferViewSprite() {
 
 }
 
-void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const Vector4& leftBottom, const Vector4& rightBottom, int index, const Vector4& material) {
+void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, const Vector4& rightTop, const Vector4& rightBottom, int index, const Vector4& material) {
 	int spriteIndex = kMaxSpriteVertex_ + 1;
 
 	for (int i = 0; i < kMaxSprite_; ++i)
@@ -282,11 +282,11 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& rightTop, const
 	// materialResourceをMapしてデータを書き込む。
 	materialResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite_));
 
-	// materialにLightingを有効にするかどうか
-	materialDataSprite_->enableLighting = false;
-
 	//色指定
 	materialDataSprite_->color = material;
+
+	// materialにLightingを有効にするかどうか
+	materialDataSprite_->enableLighting = false;
 
 	//データを書き込むためのアドレスを取得
 	transformationMatrixResourceSprite_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSprite_));
@@ -568,6 +568,18 @@ int Triangle::LoadTexture(const std::string& filePath)
 	return spriteIndex;
 }
 
+void Triangle::ResetVertex() {
+
+	for (int i = 0; i < 3; ++i)
+	{
+
+		if (CheckSpriteIndex_[i] == true)
+		{
+			CheckSpriteIndex_[i] = false;
+		}
+	}
+}
+
 D3D12_CPU_DESCRIPTOR_HANDLE Triangle::GetCPUDescriptorHandle(ID3D12DescriptorHeap* descriptorHeap, uint32_t descriptorSize, uint32_t index)
 {	
 	D3D12_CPU_DESCRIPTOR_HANDLE handleCPU = descriptorHeap->GetCPUDescriptorHandleForHeapStart();
@@ -581,4 +593,3 @@ D3D12_GPU_DESCRIPTOR_HANDLE Triangle::GetGPUDescriptorHandle(ID3D12DescriptorHea
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
 }
-

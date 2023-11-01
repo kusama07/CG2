@@ -105,10 +105,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			camera->Updata();
 
-			triangle->DrawSprite(LeftTop, RightTop, LeftBottom, RightBottom, uvChecker, Material[0]);
+			triangle->DrawSprite(LeftTop, LeftBottom, RightTop, RightBottom, uvChecker, Material[0]);
 
 			/*triangle->DrawSphere(sphere, camera->transformMatrix_, uvChecker, Material[0]);*/
-
+			triangle->ResetVertex();
 			myEngine->UpdateEnd();
 		}
 	}
