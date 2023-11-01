@@ -32,7 +32,7 @@ public:
 
 	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix,const int index);
 	
-	void DrawModel(const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
+	void DrawModel(const Matrix4x4& viewProjectionMatrix, const Vector4& material);
 
 	void DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, const Vector4& rightTop, const Vector4& rightBottom, const int index, const Vector4& material);
 
@@ -55,11 +55,11 @@ private: //*** プライベートな関数 ***//
 
 	void VertexBufferViewTriangle();
 
-	void VertexBufferViewSphere();
-
 	void VertexBufferViewSprite();
 
 	void IndexBufferViewSprite();
+
+	MaterialData LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename);
 
 public:
 	//データを書き込む
@@ -222,6 +222,8 @@ private:
 	ID3D12Resource* transformationMatrixResourceObj_;
 
 	TransformationMatrix* transformationMatrixDataObj_;
+
+	ModelData modelData;
 
 	Transform transformObj_;
 

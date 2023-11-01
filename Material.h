@@ -5,3 +5,8 @@ struct Material {
 	int32_t enableLighting;
 	Matrix4x4 uvTransform;
 };
+
+struct MaterialData
+{
+	std::string textureFilePath;
+};

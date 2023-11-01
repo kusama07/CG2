@@ -12,9 +12,6 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 	VertexBufferViewSprite();
 	IndexBufferViewSprite();
 
-	//球のvertexBufferViewを作成
-	VertexBufferViewSphere();
-
 	Settingcolor();
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
@@ -56,20 +53,19 @@ void Triangle::Finalize()
 {
 	materialResourceTriangle_->Release();
 	vertexResource_->Release();
+	wvpResource_->Release();
+
+	vertexResourceObj_->Release();
+	materialResourceObj_->Release();
+	transformationMatrixResourceObj_->Release();
 
 	vertexResourceSprite_->Release();
 	transformationMatrixResourceSprite_->Release();
-	wvpResource_->Release();
-
-	vertexResourceSphere_->Release();
-	transformationMatrixResourceSphere_->Release();
-
 	materialResourceSprite_->Release();
-	materialResourceSphere_->Release();
+	indexResourceSprite_->Release();
 
 	directionalLightResource_->Release();
 
-	indexResourceSprite_->Release();
 
 	for (int i = 0; i < kMaxTexture; i++) {
 
@@ -326,38 +322,24 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, con
 
 };
 
-void Triangle::VertexBufferViewSphere()
-{
-	//vertexResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice() , sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_);
+void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix,const Vector4& material) {
+
+	transformObj_.scale = { 1.0f,1.0,1.0f };
 
 	transformationMatrixResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
 
 	// materialResource作成
 	materialResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
 
-	/*vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
-
-	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
-
-	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_;
-
-	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);*/
-
-}
-
-void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix, const int index, const Vector4& material) {
-
-	transformObj_.scale = { 1.0f,1.0,1.0f };
 
 	//************OBJ
-	ModelData modelData = LoadObjFile("resource", "plane.obj");
+	modelData = LoadObjFile("resource", "plane.obj");
 
 	vertexResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * modelData.vertices.size());
 
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewObj{};
-	vertexBufferViewObj.BufferLocation = vertexResourceObj_->GetGPUVirtualAddress();
-	vertexBufferViewObj.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());
-	vertexBufferViewObj.StrideInBytes = sizeof(VertexData);
+	vertexBufferViewObj_.BufferLocation = vertexResourceObj_->GetGPUVirtualAddress();
+	vertexBufferViewObj_.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());
+	vertexBufferViewObj_.StrideInBytes = sizeof(VertexData);
 
 	vertexDataObj_ = nullptr;
 	vertexResourceObj_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataObj_));
@@ -387,7 +369,7 @@ void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix, const int index,
 	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	//変更が必要なものだけ変更する
-	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewObj);
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewObj_);
 
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceObj_->GetGPUVirtualAddress());
 
@@ -395,7 +377,7 @@ void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix, const int index,
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceObj_->GetGPUVirtualAddress());
 
 	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[modelData.textureIndex]);
 
 	// Lightingの場所設定
 	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
@@ -541,7 +523,7 @@ D3D12_GPU_DESCRIPTOR_HANDLE Triangle::GetGPUDescriptorHandle(ID3D12DescriptorHea
 
 ModelData Triangle::LoadObjFile(const std::string& directoryPath, const std::string& filename)
 {
-	ModelData modelData;
+	ModelData ObjmodelData;
 	std::vector<Vector4> positions;
 	std::vector<Vector3> normals;
 	std::vector<Vector2> texcoords;
@@ -558,13 +540,14 @@ ModelData Triangle::LoadObjFile(const std::string& directoryPath, const std::str
 		if (identifier == "v") {
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
-			position.x *= -1.0f;
+			position.z *= -1.0f;
 			position.w = 1.0f;
 			positions.push_back(position);
 		}
 		else if (identifier == "vt") {
 			Vector2 texcoord;
 			s >> texcoord.x >> texcoord.y;
+			texcoord.y = 1.0f - texcoord.y;
 			texcoords.push_back(texcoord);
 		}
 		else if (identifier == "vn") {
@@ -593,15 +576,45 @@ ModelData Triangle::LoadObjFile(const std::string& directoryPath, const std::str
 				Vector2 texcoord = texcoords[elementIndices[1] - 1];
 				Vector3 normal = normals[elementIndices[2] - 1];
 				VertexData vertex = { position,texcoord,normal };
-				modelData.vertices.push_back(vertex);
+				ObjmodelData.vertices.push_back(vertex);
 
 				triangleData[faceVertex] = { position,texcoord,normal };
 			}
-			modelData.vertices.push_back(triangleData[2]);
-			modelData.vertices.push_back(triangleData[1]);
-			modelData.vertices.push_back(triangleData[0]);
+			ObjmodelData.vertices.push_back(triangleData[2]);
+			ObjmodelData.vertices.push_back(triangleData[1]);
+			ObjmodelData.vertices.push_back(triangleData[0]);
+		}
+		else if (identifier == "mtllib") {
+			std::string materialFilename;
+			s >> materialFilename;
+			ObjmodelData.material = LoadMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
 
-	return modelData;
+	ObjmodelData.textureIndex = LoadTexture(ObjmodelData.material.textureFilePath);
+
+	return ObjmodelData;
+}
+
+MaterialData Triangle::LoadMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
+	MaterialData materialData;
+	std::string line;
+	std::ifstream file(directoryPath + "/" + filename);
+	assert(file.is_open());
+
+	while (std::getline(file, line)) {
+		std::string identifier;
+		std::istringstream s(line);
+
+		s >> identifier;
+
+		if (identifier == "map_Kd") {
+			std::string textureFilename;
+			s >> textureFilename;
+
+			materialData.textureFilePath = directoryPath + "/" + textureFilename;
+		}
+	}
+
+	return materialData;
 }
