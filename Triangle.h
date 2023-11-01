@@ -17,7 +17,9 @@
 #include "externals/DirectXTex/DirectXTex.h"
 #include "externals/DirectXTex/d3dx12.h"
 #include <Vector>
-
+#include "ModelData.h"
+#include <fstream>
+#include <sstream>
 
 class MyEngine;
 
@@ -30,7 +32,7 @@ public:
 
 	void DrawTriangle(const Vector4& a, const Vector4& b, const Vector4& c, const ID3D12Resource& material, const Matrix4x4& viewProjectionMatrix,const int index);
 	
-	void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
+	void DrawModel(const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material);
 
 	void DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, const Vector4& rightTop, const Vector4& rightBottom, const int index, const Vector4& material);
 
@@ -39,6 +41,10 @@ public:
 	int LoadTexture(const std::string& filePath);
 
 	void ResetVertex();
+
+	ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename);
+
+	//void DrawModel(const ModelData& modelData, const Vector3& position, const Matrix4x4& ViewMatrix, const Vector4& material);
 
 	//void TriangleImGui();
 
@@ -199,5 +205,30 @@ private:
 	//****************平行光源関連
 	DirectionlLight* directionalLightData_;
 	ID3D12Resource* directionalLightResource_;
+
+private:
+
+	//**************Model
+
+
+	ID3D12Resource* vertexResourceObj_;
 	
+	VertexData* vertexDataObj_;
+
+	Material* materialDataObj_;
+
+	ID3D12Resource* materialResourceObj_{};
+
+	ID3D12Resource* transformationMatrixResourceObj_;
+
+	TransformationMatrix* transformationMatrixDataObj_;
+
+	Transform transformObj_;
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewObj_;
+
+	Matrix4x4 worldMatrixObj_;
+	Matrix4x4 viewMatrixObj_;
+	Matrix4x4 projectionMatrixObj_;
+	Matrix4x4 worldViewProjectionMatrixObj_;
 };

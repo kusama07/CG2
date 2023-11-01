@@ -19,6 +19,10 @@ void Triangle::Initialize(DirectXCommon* dxCommon)
 	wvpResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Matrix4x4));
 	wvpResource_->Map(0, NULL, reinterpret_cast<void**>(&wvpData_));
 
+
+	//materialResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
+	//transformationMatrixResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
+
 	// directionalLightにBufferResourceを作る
 	directionalLightResource_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(DirectionlLight));
 	directionalLightResource_->Map(0, nullptr, reinterpret_cast<void**>(&directionalLightData_));
@@ -324,140 +328,79 @@ void Triangle::DrawSprite(const Vector4& leftTop, const Vector4& leftBottom, con
 
 void Triangle::VertexBufferViewSphere()
 {
-	vertexResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice() , sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_);
+	//vertexResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice() , sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_);
 
-	transformationMatrixResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
+	transformationMatrixResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(TransformationMatrix));
 
 	// materialResource作成
-	materialResourceSphere_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
+	materialResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(Material));
 
-	vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
+	/*vertexResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataSphere_));
 
 	vertexBufferViewSphere_.BufferLocation = vertexResourceSphere_->GetGPUVirtualAddress();
 
 	vertexBufferViewSphere_.SizeInBytes = sizeof(VertexData) * 6 * kSubdivison_ * kSubdivison_;
 
-	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);
+	vertexBufferViewSphere_.StrideInBytes = sizeof(VertexData);*/
 
 }
 
-void Triangle::DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const int index,const Vector4& material) {
+void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix, const int index, const Vector4& material) {
 
-	//経度分割1つ分の角度φ
-	const float kLonEvery = float(std::numbers::pi) * 2.0f / float(kSubdivison_);
-	//緯度分割1つ分の角度θ
-	const float kLatEvery = float(std::numbers::pi) / float(kSubdivison_);
+	//************OBJ
+	ModelData modelData = LoadObjFile("resource", "plane.obj");
 
-	//緯度の方向に分割
-	for (int latIndex = 0; latIndex < kSubdivison_; ++latIndex)
-	{
-		float lat = -float(std::numbers::pi) / 2.0f + kLatEvery * latIndex;
-		float uvLength = 1.0f / kSubdivison_;
+	vertexResourceObj_ = CreateBufferResource(dxCommon_->GetDevice(), sizeof(VertexData) * modelData.vertices.size());
 
-		//経度の方向に分割しながら線を描く
-		for (int lonIndex = 0; lonIndex < kSubdivison_; ++lonIndex)
-		{
-			uint32_t start = (latIndex * kSubdivison_ + lonIndex) * 6;
-			float lon = lonIndex * kLonEvery;
-			float u = float(lonIndex) / float(kSubdivison_);
-			float v = 1.0f - float(latIndex) / float(kSubdivison_);
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferViewObj{};
+	vertexBufferViewObj.BufferLocation = vertexResourceObj_->GetGPUVirtualAddress();
+	vertexBufferViewObj.SizeInBytes = UINT(sizeof(VertexData) * modelData.vertices.size());
+	vertexBufferViewObj.StrideInBytes = sizeof(VertexData);
 
-			vertexDataSphere_[start].position.x = cos(lat) * cos(lon) + sphere.center.x;
-			vertexDataSphere_[start].position.y = sin(lat) + sphere.center.y;
-			vertexDataSphere_[start].position.w = cos(lat) * sin(lon) + sphere.center.z;
-			vertexDataSphere_[start].position.h = 1.0f;
-			vertexDataSphere_[start].texcoord = { u,v + uvLength };
-			vertexDataSphere_[start].normal.x = vertexDataSphere_[start].position.x;
-			vertexDataSphere_[start].normal.y = vertexDataSphere_[start].position.y;
-			vertexDataSphere_[start].normal.z = vertexDataSphere_[start].position.w;
-
-			vertexDataSphere_[start + 1].position.x = cos(lat + kLatEvery) * cos(lon) + sphere.center.x;
-			vertexDataSphere_[start + 1].position.y = sin(lat + kLatEvery) + sphere.center.y;
-			vertexDataSphere_[start + 1].position.w = cos(lat + kLatEvery) * sin(lon) + sphere.center.z;
-			vertexDataSphere_[start + 1].position.h = 1.0f;
-			vertexDataSphere_[start + 1].texcoord = { u,v };
-			vertexDataSphere_[start + 1].normal.x = vertexDataSphere_[start + 1].position.x;
-			vertexDataSphere_[start + 1].normal.y = vertexDataSphere_[start + 1].position.y;
-			vertexDataSphere_[start + 1].normal.z = vertexDataSphere_[start + 1].position.w;
-
-			vertexDataSphere_[start + 2].position.x = cos(lat) * cos(lon + kLonEvery) + sphere.center.x;
-			vertexDataSphere_[start + 2].position.y = sin(lat) + sphere.center.y;
-			vertexDataSphere_[start + 2].position.w = cos(lat) * sin(lon + kLonEvery) + sphere.center.z;
-			vertexDataSphere_[start + 2].position.h = 1.0f;
-			vertexDataSphere_[start + 2].texcoord = { u + uvLength, v + uvLength };
-			vertexDataSphere_[start + 2].normal.x = vertexDataSphere_[start + 2].position.x;
-			vertexDataSphere_[start + 2].normal.y = vertexDataSphere_[start + 2].position.y;
-			vertexDataSphere_[start + 2].normal.z = vertexDataSphere_[start + 2].position.w;
-
-			vertexDataSphere_[start + 3].position.x = cos(lat + kLatEvery) * cos(lon + kLonEvery) + sphere.center.x;
-			vertexDataSphere_[start + 3].position.y = sin(lat + kLatEvery) + sphere.center.y;
-			vertexDataSphere_[start + 3].position.w = cos(lat + kLatEvery) * sin(lon + kLonEvery) + sphere.center.z;
-			vertexDataSphere_[start + 3].position.h = 1.0f;
-			vertexDataSphere_[start + 3].texcoord = { u + uvLength,v };
-			vertexDataSphere_[start + 3].normal.x = vertexDataSphere_[start + 3].position.x;
-			vertexDataSphere_[start + 3].normal.y = vertexDataSphere_[start + 3].position.y;
-			vertexDataSphere_[start + 3].normal.z = vertexDataSphere_[start + 3].position.w;
-
-			vertexDataSphere_[start + 4].position.x = cos(lat) * cos(lon + kLonEvery) + sphere.center.x;
-			vertexDataSphere_[start + 4].position.y = sin(lat) + sphere.center.y;
-			vertexDataSphere_[start + 4].position.w = cos(lat) * sin(lon + kLonEvery) + sphere.center.z;
-			vertexDataSphere_[start + 4].position.h = 1.0f;
-			vertexDataSphere_[start + 4].texcoord = { u + uvLength, v + uvLength };
-			vertexDataSphere_[start + 4].normal.x = vertexDataSphere_[start + 4].position.x;
-			vertexDataSphere_[start + 4].normal.y = vertexDataSphere_[start + 4].position.y;
-			vertexDataSphere_[start + 4].normal.z = vertexDataSphere_[start + 4].position.w;
+	vertexDataObj_ = nullptr;
+	vertexResourceObj_->Map(0, nullptr, reinterpret_cast<void**>(&vertexDataObj_));
+	std::memcpy(vertexDataObj_, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());
 
 
-			vertexDataSphere_[start + 5].position.x = cos(lat + kLatEvery) * cos(lon) + sphere.center.x;
-			vertexDataSphere_[start + 5].position.y = sin(lat + kLatEvery) + sphere.center.y;
-			vertexDataSphere_[start + 5].position.w = cos(lat + kLatEvery) * sin(lon) + sphere.center.z;
-			vertexDataSphere_[start + 5].position.h = 1.0f;
-			vertexDataSphere_[start + 5].texcoord = { u,v };
-			vertexDataSphere_[start + 5].normal.x = vertexDataSphere_[start + 5].position.x;
-			vertexDataSphere_[start + 5].normal.y = vertexDataSphere_[start + 5].position.y;
-			vertexDataSphere_[start + 5].normal.z = vertexDataSphere_[start + 5].position.w;
+	// MaterialResourceをMapしてデータを書き込む。
+	materialResourceObj_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataObj_));
 
-		}	
+	// materialにlightingを有効にするかどうか
+	materialDataObj_->enableLighting = false;
+	//色指定
+	materialDataObj_->color = material;
+	materialDataObj_->uvTransform = MakeIdentity4x4();
 
-		// MaterialResourceをMapしてデータを書き込む。
-		materialResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSphere_));
+	//データを書き込むためのアドレスを取得
+	transformationMatrixResourceObj_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataObj_));
 
-		// materialにlightingを有効にするかどうか
-		materialDataSphere_->enableLighting = true;
+	worldMatrixObj_ = MakeAffineMatrix(transformObj_.scale, transformObj_.rotate, transformObj_.translate);
 
-		//色指定
-		materialDataSphere_->color = material;
+	//単位行列を書き込んでおく
+	transformationMatrixDataObj_->WVP = Multiply(worldMatrixObj_, viewProjectionMatrix);
 
-		//データを書き込むためのアドレスを取得
-		transformationMatrixResourceSphere_->Map(0, nullptr, reinterpret_cast<void**>(&transformationMatrixDataSphere_));
+	transformationMatrixDataObj_->World = MakeIdentity4x4();
 
-		worldMatrixSphere_ = MakeAffineMatrix(transformSphere_.scale, transformSphere_.rotate, transformSphere_.translate);
 
-		//単位行列を書き込んでおく
-		transformationMatrixDataSphere_->WVP = Multiply(worldMatrixSphere_,viewProjectionMatrix);
+	dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		transformationMatrixDataSphere_->World = MakeIdentity4x4();
+	//変更が必要なものだけ変更する
+	dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewObj);
 
-		//球の描画
-		dxCommon_->GetCommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceObj_->GetGPUVirtualAddress());
 
-		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(0, materialResourceSphere_->GetGPUVirtualAddress());
+	//TransformationMatrixBufferの場所を設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceObj_->GetGPUVirtualAddress());
 
-		//球の描画。変更が必要なものだけ変更する
-		dxCommon_->GetCommandList()->IASetVertexBuffers(0, 1, &vertexBufferViewSphere_);
+	//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
+	dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
 
-		//TransformationMatrixBufferの場所を設定
-		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSphere_->GetGPUVirtualAddress());
+	// Lightingの場所設定
+	dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
 
-		//SRVのDescriptorTableの先頭を設定。2はrootPrameter[2]である。
-		dxCommon_->GetCommandList()->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU_[index]);
+	//描画
+	dxCommon_->GetCommandList()->DrawInstanced(UINT(modelData.vertices.size()), 1, 0, 0);
 
-		// Lightingの場所設定
-		dxCommon_->GetCommandList()->SetGraphicsRootConstantBufferView(3, directionalLightResource_->GetGPUVirtualAddress());
-
-		//sphere描画
-		dxCommon_->GetCommandList()->DrawInstanced(kSubdivison_ * kSubdivison_ * 6, 1, 0, 0);
-	}
 }
 
 DirectX::ScratchImage Triangle::createmap(const std::string& filePath)
@@ -592,4 +535,71 @@ D3D12_GPU_DESCRIPTOR_HANDLE Triangle::GetGPUDescriptorHandle(ID3D12DescriptorHea
 	D3D12_GPU_DESCRIPTOR_HANDLE handleGPU = descriptorHeap->GetGPUDescriptorHandleForHeapStart();
 	handleGPU.ptr += (descriptorSize * index);
 	return handleGPU;
+}
+
+ModelData Triangle::LoadObjFile(const std::string& directoryPath, const std::string& filename)
+{
+	ModelData modelData;
+	std::vector<Vector4> positions;
+	std::vector<Vector3> normals;
+	std::vector<Vector2> texcoords;
+	std::string line;
+
+	std::ifstream file(directoryPath + "/" + filename);
+	assert(file.is_open());
+
+	while (std::getline(file, line)) {
+		std::string identifier;
+		std::istringstream s(line);
+		s >> identifier;
+
+		if (identifier == "v") {
+			Vector4 position;
+			s >> position.x >> position.y >> position.w;
+			position.x *= -1.0f;
+			position.w *= 1.0f;
+			positions.push_back(position);
+		}
+		else if (identifier == "vt") {
+			Vector2 texcoord;
+			s >> texcoord.x >> texcoord.y;
+			texcoords.push_back(texcoord);
+		}
+		else if (identifier == "vn") {
+			Vector3 normal;
+			s >> normal.x >> normal.y >> normal.z;
+			normal.x *= -1.0f;
+			normals.push_back(normal);
+		}
+		else if (identifier == "f") {
+			VertexData triangleData[3];
+
+			for (int32_t faceVertex = 0; faceVertex < 3; ++faceVertex) {
+				std::string vertexDefinition;
+				s >> vertexDefinition;
+
+				std::istringstream v(vertexDefinition);
+				uint32_t elementIndices[3];
+				for (int32_t element = 0; element < 3; ++element)
+				{
+					std::string index;
+					std::getline(v, index, '/');
+					elementIndices[element] = std::stoi(index);
+				}
+
+				Vector4 position = positions[elementIndices[0] - 1];
+				Vector2 texcoord = texcoords[elementIndices[1] - 1];
+				Vector3 normal = normals[elementIndices[2] - 1];
+				VertexData vertex = { position,texcoord,normal };
+				modelData.vertices.push_back(vertex);
+
+				triangleData[faceVertex] = { position,texcoord,normal };
+			}
+			modelData.vertices.push_back(triangleData[2]);
+			modelData.vertices.push_back(triangleData[1]);
+			modelData.vertices.push_back(triangleData[0]);
+		}
+	}
+
+	return modelData;
 }

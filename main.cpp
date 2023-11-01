@@ -52,6 +52,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	int monsterBall = triangle->LoadTexture("resource/monsterBall.png");
 	bool textureChangeFlag = false;
 
+	ModelData axisModel = triangle->LoadObjFile("resource", "axis.obj");
+
 	MSG msg{};
 
 	//ウィンドウのxが押されるまでループ
@@ -105,9 +107,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 			camera->Updata();
 
-			triangle->DrawSprite(LeftTop, LeftBottom, RightTop, RightBottom, uvChecker, Material[0]);
+			/*triangle->DrawSprite(LeftTop, LeftBottom, RightTop, RightBottom, uvChecker, Material[0]);*/
+			triangle->DrawModel(camera->transformMatrix_, uvChecker, Material[0]);
+			//triangle->DrawModel(axisModel, { 0,0,0 }, camera->transformMatrix_, Material[0]);
 
-			/*triangle->DrawSphere(sphere, camera->transformMatrix_, uvChecker, Material[0]);*/
 			triangle->ResetVertex();
 			myEngine->UpdateEnd();
 		}
