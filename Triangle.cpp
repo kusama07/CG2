@@ -347,6 +347,8 @@ void Triangle::VertexBufferViewSphere()
 
 void Triangle::DrawModel(const Matrix4x4& viewProjectionMatrix, const int index, const Vector4& material) {
 
+	transformObj_.scale = { 1.0f,1.0,1.0f };
+
 	//************OBJ
 	ModelData modelData = LoadObjFile("resource", "plane.obj");
 
@@ -555,9 +557,9 @@ ModelData Triangle::LoadObjFile(const std::string& directoryPath, const std::str
 
 		if (identifier == "v") {
 			Vector4 position;
-			s >> position.x >> position.y >> position.w;
+			s >> position.x >> position.y >> position.z;
 			position.x *= -1.0f;
-			position.w *= 1.0f;
+			position.w = 1.0f;
 			positions.push_back(position);
 		}
 		else if (identifier == "vt") {
