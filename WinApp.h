@@ -25,6 +25,8 @@ public:
 
 	HWND GetHwnd() const { return hwnd_; }
 
+	HINSTANCE GetHInst() const { return hInst_; }
+
 private:
 	const wchar_t* Title_;
 	HINSTANCE hInst_;

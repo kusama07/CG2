@@ -20,6 +20,7 @@
 #include "ModelData.h"
 #include <fstream>
 #include <sstream>
+#include "BlendMode.h"
 
 class MyEngine;
 

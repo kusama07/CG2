@@ -5,6 +5,8 @@
 #include "DirectXCommon.h"
 #include "Sphere.h"
 #include "camera.h"
+#include "Input.h"
+#include "Audio.h"
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -12,13 +14,32 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//COMの初期化
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
-	WinApp* winApp = new WinApp();
-	DirectXCommon* dxCommon = new DirectXCommon();
+#pragma region 基盤システムの初期化
+
+	WinApp* winApp = nullptr;
+	// WindowsAPIの初期化
+	winApp = new WinApp();
+	winApp->StartApp();
+
+	DirectXCommon* dxCommon = nullptr;
+	// DirectXの初期化
+	dxCommon = new DirectXCommon();
+	dxCommon->Initialize(winApp->GetHwnd());
+
+	// 入力ポインタ
+	Input* input = nullptr;
+	// 入力初期化
+	input = new Input();
+	input->Initialize(winApp->GetHInst(), winApp->GetHwnd());
+	
+#pragma endregion 基盤システムの初期化
+
+#pragma region 最初のシーンの初期化
+
+
 	MyEngine* myEngine = new MyEngine();
 
 	// ゲームシーンの初期化
-	winApp->StartApp();
-	dxCommon->Initialize(winApp->GetHwnd());
 	myEngine->Initialize();
 	Triangle* triangle = new Triangle();
 	Camera* camera = new Camera();
@@ -54,7 +75,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ModelData axisModel = triangle->LoadObjFile("resource", "axis.obj");
 
+
+#pragma endregion 最初のシーンの終了
+
 	MSG msg{};
+#pragma region 基盤システムの更新
 
 	//ウィンドウのxが押されるまでループ
 	while (msg.message != WM_QUIT) {
@@ -65,6 +90,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		else {
 			//ゲームの処理
+
+			// 入力の更新
+			input->Updata();
 			
 			myEngine->Update();
 
@@ -115,6 +143,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			myEngine->UpdateEnd();
 		}
 	}
+#pragma endregion 基盤システムの更新
+
+#pragma region 基盤システムの終了
+	// 入力開放
+	delete input;
 
 	triangle->Finalize();
 	winApp->EndApp();
@@ -122,6 +155,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	dxCommon->PostDraw();
 
 	CoUninitialize();
+#pragma endregion 基盤システムの終了
 
 	return 0;
 }
