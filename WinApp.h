@@ -27,6 +27,9 @@ public:
 
 	HINSTANCE GetHInst() const { return hInst_; }
 
+	// メッセージの処理
+	bool ProcessMessage();
+
 private:
 	const wchar_t* Title_;
 	HINSTANCE hInst_;
