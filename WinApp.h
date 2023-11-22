@@ -19,20 +19,31 @@ public:
 	void StartApp();
 	void EndApp();
 	
+	// メッセージの処理
+	bool ProcessMessage();
+
 	int32_t GetWidth() const { return Width_; }
 
 	int32_t GetHeight() const { return Height_; }
 
 	HWND GetHwnd() const { return hwnd_; }
 
-	HINSTANCE GetHInst() const { return hInst_; }
+	HINSTANCE GetHInst() const { return wc_.hInstance; }
 
-	// メッセージの処理
-	bool ProcessMessage();
+private: // プライベートな関数
+	bool Initialize();
 
-private:
+	void End();
+
+	bool WindowClassRegister();
+
+	void EndWindow();
+
+
+	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
+
+private: // プライベートな変数
 	const wchar_t* Title_;
-	HINSTANCE hInst_;
 	HWND hwnd_;
 	int32_t Width_;		
 	int32_t Height_;
@@ -43,13 +54,5 @@ private:
 
 	ID3D12Debug1* debugController_ = nullptr;
 
-	bool Initialize();
 
-	void End();
-
-	bool WindowClassRegister();
-
-	void EndWindow();
-
-	static LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam);
 };

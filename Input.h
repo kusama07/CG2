@@ -18,7 +18,7 @@ public:
 	template <class T>using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 public: 
-	void Initialize(HINSTANCE hInstance, HWND hwnd);
+	void Initialize(WinApp* winApp);
 	void Updata();
 
 	static Input* GetInstance();

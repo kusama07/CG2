@@ -6,6 +6,7 @@
 #include <dxgidebug.h>
 #include "ConvertString.h"
 #include "WinApp.h"
+#include <wrl.h>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -58,6 +59,8 @@ public:
 	ID3D12DescriptorHeap* GetsrvDescriptor() { return srvDescriptorHeap_; }
 
 	ID3D12DescriptorHeap* GetdsvDescriptor() { return dsvDescriptorHeap_; }
+
+	IDXGIAdapter4* GetUseAdapter() { return useAdapter; }
 
 private:
 	void InitializeDXGIDevice();

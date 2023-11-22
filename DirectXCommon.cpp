@@ -1,5 +1,6 @@
 #include "DirectXCommon.h"
 
+
 DirectXCommon::DirectXCommon() {
 	hr_ = 0;
 }

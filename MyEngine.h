@@ -1,7 +1,7 @@
 #pragma once
 #include "DirectXCommon.h"
 #include <dxcapi.h>
-#include"Vector4.h"
+#include "math/Vector4.h"
 #include "Triangle.h"
 #include "ConvertString.h"
 #include "WinApp.h"

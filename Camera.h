@@ -1,6 +1,6 @@
 #pragma once
-#include "Matrix4x4.h" 
-#include "MyMath.h"
+#include "math/Matrix4x4.h" 
+#include "math/MyMath.h"
 
 class Camera
 {

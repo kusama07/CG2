@@ -4,7 +4,6 @@ WinApp::WinApp() {
 
 	Title_ = L"CG2_LE2B_10_クサマリョウト";
 
-	hInst_ = nullptr;
 	hwnd_ = nullptr;
 
 	Width_ = 1280;
@@ -108,6 +107,11 @@ bool WinApp::WindowClassRegister() {
 }
 
 void WinApp::End() {
+	// 追加
+	CloseWindow(hwnd_);
+	CoUninitialize();
+	//***
+
 	EndWindow();
 }
 

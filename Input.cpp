@@ -1,9 +1,11 @@
 #include "Input.h"
 
-void Input::Initialize(HINSTANCE hInstance, HWND hwnd) {
+void Input::Initialize(WinApp* winApp) {
+
+	// 借りてきたWinAppのインスタンスを記録
+	this->winApp_ = winApp_;
 
 	// DirectInputの初期化
-
 	result_ = DirectInput8Create(
 		winApp_->GetHInst(),
 		DIRECTINPUT_VERSION,

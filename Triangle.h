@@ -3,13 +3,13 @@
 #include <numbers>
 
 #include "DirectXCommon.h"
-#include "Vector4.h"
-#include "MyMath.h"
-#include "Matrix4x4.h"
+#include "math/Vector4.h"
+#include "math/MyMath.h"
+#include "math/Matrix4x4.h"
+#include "math/Vector2.h"
 #include "MyEngine.h"
 #include "VertexData.h"
 #include "Sphere.h"
-#include "Vector2.h"
 #include "Material.h"
 #include "TransformationMatrix.h"
 #include "DirectionalLight.h"

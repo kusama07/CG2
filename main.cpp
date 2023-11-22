@@ -7,6 +7,8 @@
 #include "camera.h"
 #include "Input.h"
 #include "Audio.h"
+#include "SpriteCommon.h"
+#include "Sprite.h"
 
 //Windowsアプリでのエントリーポイント
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -16,8 +18,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region 基盤システムの初期化
 
+	// WinAppのポインタ
 	WinApp* winApp = nullptr;
-	// WindowsAPIの初期化
+	// WinAppの初期化
 	winApp = new WinApp();
 	winApp->StartApp();
 
@@ -30,8 +33,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	Input* input = nullptr;
 	// 入力初期化
 	input = new Input();
-	input->Initialize(winApp->GetHInst(), winApp->GetHwnd());
-	
+	input->Initialize(winApp);
+
+	// スプライト共通部ポインタ
+	SpriteCommon* spriteCommon = nullptr;
+	// スプライト共通部の初期化
+	spriteCommon = new SpriteCommon;
+	spriteCommon->Initialize(dxCommon);
+
 #pragma endregion 基盤システムの初期化
 
 #pragma region 最初のシーンの初期化
@@ -75,18 +84,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ModelData axisModel = triangle->LoadObjFile("resource", "axis.obj");
 
+	// スプライトポインタ
+	Sprite* sprite = new Sprite();
+	// スプライト初期化
+	sprite->Initialize(spriteCommon);
 
 #pragma endregion 最初のシーンの終了
 
-	MSG msg{};
 #pragma region 基盤システムの更新
 
-	//ウィンドウのxが押されるまでループ
-	while (msg.message != WM_QUIT) {
-		//windowのメッセージを最優先で処理させる
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
+	while (true) // ゲームループ
+	{
+		//windowのメッセージ処理
+		if (winApp->ProcessMessage()) {
+			// ゲームループを抜ける
+			break;
 		}
 		else {
 			//ゲームの処理
@@ -150,6 +162,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	delete input;
 
 	triangle->Finalize();
+	delete spriteCommon;
+	delete sprite;
 	winApp->EndApp();
 	myEngine->Finalize();
 	dxCommon->PostDraw();
